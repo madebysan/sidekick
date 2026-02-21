@@ -9,6 +9,10 @@ Extracts page content and YouTube transcripts as context automatically.</p>
 
 <p align="center">Chrome · Manifest V3 · Uses your own API key</p>
 
+<p align="center">
+  <img src="screenshots/hero.png" width="600" alt="Sidekick — command pills, autocomplete, and YouTube transcript summary">
+</p>
+
 ## Install
 
 <p align="center">
@@ -30,11 +34,23 @@ Or install from source:
 
 **Automatic context extraction** — Open Sidekick on any webpage and it reads the page content for you. On YouTube, it grabs the full transcript with timestamps instead. Ask questions, get summaries, or analyze what you're reading — the AI already knows what's on the page.
 
+<p align="center">
+  <img src="screenshots/youtube.png" width="600" alt="Sidekick — YouTube transcript summary with /tldr command">
+</p>
+
 **Screenshot capture** — Click the camera button to screenshot the visible page and ask about what you see. Uses the same vision pipeline as drag-and-drop images.
+
+<p align="center">
+  <img src="screenshots/vision.png" width="600" alt="Sidekick — image recognition identifying a camera">
+</p>
 
 **Slash commands** — Type `/tldr` for a summary, `/explain` for a simple breakdown, `/key` for takeaways, or `/translate` to translate. Create your own custom commands in Settings. Commands appear as clickable pills on the welcome screen.
 
 **Text-to-Speech** — Listen to any response with browser voices (free) or ElevenLabs (premium). Play, pause, and resume controls on each message.
+
+<p align="center">
+  <img src="screenshots/settings.png" width="600" alt="Sidekick — settings page with TTS, custom commands, and font selection">
+</p>
 
 Also: drag-and-drop images · streaming responses · markdown rendering · auto-save conversations on tab close · multiple models · custom system prompt · dark mode · resizable window · font selection · conversation download · settings export/import · per-tab isolation · Shadow DOM isolation
 
