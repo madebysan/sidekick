@@ -1,0 +1,417 @@
+/* Sidekick — Settings page styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f7f7f8;
+  color: #1a1a1a;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.settings-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* Header */
+.settings-header {
+  margin-bottom: 32px;
+}
+
+.settings-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+/* Sections */
+.settings-section {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.settings-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+
+.section-desc {
+  font-size: 13px;
+  color: #6b6b6b;
+  margin-bottom: 16px;
+}
+
+.section-desc code {
+  background: #f0f0f2;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #6b6b6b;
+  margin-top: 4px;
+}
+
+.form-hint a {
+  color: #c96442;
+  text-decoration: none;
+}
+
+.form-hint a:hover {
+  text-decoration: underline;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a1a1a;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #c96442;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #9b9b9b;
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* API key toggle */
+.input-with-toggle {
+  position: relative;
+}
+
+.input-with-toggle input {
+  padding-right: 40px;
+}
+
+.toggle-visibility {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b6b6b;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-visibility:hover {
+  color: #1a1a1a;
+}
+
+/* Theme options */
+.theme-options {
+  display: flex;
+  gap: 8px;
+}
+
+.theme-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.theme-option:hover {
+  background: #f7f7f8;
+}
+
+.theme-option:has(input:checked) {
+  border-color: #c96442;
+  background: #fdf2ee;
+}
+
+.theme-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #c96442;
+}
+
+.theme-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.theme-desc {
+  font-size: 11px;
+  color: #6b6b6b;
+}
+
+/* Font options */
+.font-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.font-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.font-option:hover {
+  background: #f7f7f8;
+}
+
+.font-option:has(input:checked) {
+  border-color: #c96442;
+  background: #fdf2ee;
+}
+
+.font-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #c96442;
+}
+
+.font-preview {
+  font-size: 14px;
+}
+
+/* Voice picker row (select + test button) */
+.voice-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.voice-row select {
+  flex: 1;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Save path display */
+.save-path-display {
+  font-size: 13px;
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  color: #6b6b6b;
+  background: #f0f0f2;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+/* Commands */
+.commands-list {
+  margin-bottom: 12px;
+}
+
+.command-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.command-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.command-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #c96442;
+}
+
+.command-prompt {
+  font-size: 12px;
+  color: #6b6b6b;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.command-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.command-actions button {
+  padding: 4px 10px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #6b6b6b;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.command-actions button:hover {
+  background: #f7f7f8;
+  color: #1a1a1a;
+}
+
+.command-actions .delete-cmd:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Command form */
+.command-form {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #c96442;
+  border-radius: 8px;
+  background: #fdf2ee;
+}
+
+.command-input {
+  margin-bottom: 8px;
+}
+
+.command-textarea {
+  margin-bottom: 8px;
+  resize: vertical;
+}
+
+.command-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-primary {
+  background: #c96442;
+  color: #ffffff;
+  border-color: #c96442;
+}
+
+.btn-primary:hover {
+  background: #b5593a;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #1a1a1a;
+  border-color: #e5e5e5;
+}
+
+.btn-secondary:hover {
+  background: #f7f7f8;
+}
+
+/* Data actions */
+.data-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* Save status */
+.save-status {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  background: #1a1a1a;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.save-status.visible {
+  opacity: 1;
+}
