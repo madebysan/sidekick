@@ -36,24 +36,7 @@ Or install from source:
 
 **Text-to-Speech** — Listen to any response with browser voices (free) or ElevenLabs (premium). Play, pause, and resume controls on each message.
 
-<details>
-<summary><strong>More features</strong></summary>
-
-- **Image support** — Drag and drop images into the chat to ask about them
-- **Streaming responses** — Real-time token-by-token streaming from the API
-- **Markdown rendering** — Responses render with proper formatting (bold, code blocks, headers, lists, links)
-- **Auto-save conversations** — Conversations and audio are saved as markdown + MP3 files when a tab closes
-- **Multiple models** — Opus 4, Sonnet 4, Haiku 4.5, or Haiku 3.5
-- **Custom system prompt** — Persistent instructions for every conversation (e.g. "always respond in Spanish")
-- **Dark mode** — Auto (follows system), Light, or Dark
-- **Resizable window** — Drag edges to resize; opens at full viewport height by default
-- **Font selection** — System, Inter, DM Sans, IBM Plex Sans, or Source Sans 3
-- **Conversation download** — Export any conversation as a `.md` file
-- **Settings export/import** — Back up and restore settings and commands (API keys excluded)
-- **Per-tab isolation** — Each tab has its own independent conversation
-- **Shadow DOM isolation** — Chat UI is fully isolated from the host page's styles
-
-</details>
+Also: drag-and-drop images · streaming responses · markdown rendering · auto-save conversations on tab close · multiple models · custom system prompt · dark mode · resizable window · font selection · conversation download · settings export/import · per-tab isolation · Shadow DOM isolation
 
 ## Usage
 
@@ -97,7 +80,9 @@ Open settings via the gear icon in the chat header, or from `chrome://extensions
 | **Commands** | Add, edit, or delete custom slash commands |
 | **Export/Import** | Back up settings and commands as JSON (API key excluded for security) |
 
-## Built-in Commands
+## Commands
+
+Sidekick ships with four built-in commands:
 
 | Command | What it does |
 |---------|-------------|
@@ -106,7 +91,9 @@ Open settings via the gear icon in the chat header, or from `chrome://extensions
 | `/key` | List key takeaways |
 | `/translate [language]` | Translate content to a language |
 
-Add any text after a command to refine it — e.g. `/tldr 3 bullet points` sends "Provide a TL;DR summary of the page content. 3 bullet points".
+Add text after any command to refine it — e.g. `/tldr 3 bullet points`.
+
+These are just defaults. You can edit them, delete them, or create entirely new ones in Settings. Custom commands appear as clickable pills on the welcome screen alongside the built-in ones.
 
 ## File Structure
 
