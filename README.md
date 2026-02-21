@@ -1,8 +1,13 @@
-# Sidekick
+<p align="center">
+  <img src="icons/icon128.png" width="128" height="128" alt="Sidekick app icon">
+</p>
 
-A Chrome extension that adds a floating chat window to any webpage, letting you chat with AI about the page you're viewing. It automatically extracts the page content (or YouTube transcript) as context.
+<h1 align="center">Sidekick</h1>
 
-Uses your own API key. No server, no account, no data collection.
+<p align="center">Chat with AI about any webpage.<br>
+Extracts page content and YouTube transcripts as context automatically.</p>
+
+<p align="center">Chrome · Manifest V3 · Uses your own API key</p>
 
 ## Features
 
