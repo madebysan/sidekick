@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sidekick — Privacy Policy</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f7f7f8;
+      color: #1a1a1a;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #6b6b6b; margin-bottom: 32px; }
+    h2 { font-size: 16px; font-weight: 600; margin: 24px 0 8px; }
+    p, li { font-size: 14px; margin-bottom: 8px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    a { color: #c96442; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { font-weight: 600; }
+    .section {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Sidekick Privacy Policy</h1>
+    <p class="subtitle">Last updated: February 21, 2026</p>
+
+    <div class="section">
+      <h2>Overview</h2>
+      <p>Sidekick is a Chrome extension that lets you chat with AI about any webpage. It is designed to keep your data local. There is no server, no account, no analytics, and no tracking. This policy explains exactly what data is handled and where it goes.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data stored on your device</h2>
+      <p>The following data is stored locally in your browser using <code>chrome.storage.local</code> and is never transmitted to any server:</p>
+      <ul>
+        <li><strong>Settings and preferences</strong> — theme, font, model selection, max context length, custom system prompt</li>
+        <li><strong>API keys</strong> — your Anthropic API key and optional ElevenLabs API key are stored locally and only sent to their respective APIs when making requests</li>
+        <li><strong>Custom slash commands</strong> — command names and prompt text you create</li>
+        <li><strong>UI state</strong> — chat window size</li>
+        <li><strong>Conversation data</strong> — temporarily stored while a tab is open, used for auto-saving when the tab closes</li>
+      </ul>
+      <p>Saved conversation logs and audio files are written to your local Downloads folder (<code>Downloads/Temp/sidekick-logs/</code>) and are not transmitted anywhere.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data sent to Anthropic (api.anthropic.com)</h2>
+      <p>When you send a message in the chat, the following is transmitted directly from your browser to the Anthropic API:</p>
+      <ul>
+        <li>Your message text and conversation history for the current tab</li>
+        <li>Page content or YouTube transcript text, if context is active</li>
+        <li>Images you attach via drag-and-drop or screenshot (sent as base64-encoded data)</li>
+        <li>Your Anthropic API key (for authentication)</li>
+        <li>The selected model name</li>
+      </ul>
+      <p>API calls go directly from your browser to Anthropic. No proxy server or intermediary is involved. Anthropic's own <a href="https://www.anthropic.com/privacy" target="_blank">privacy policy</a> governs how they handle API requests.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data sent to ElevenLabs (api.elevenlabs.io)</h2>
+      <p>This only applies if you enable ElevenLabs text-to-speech in Settings. When you click "Speak" on an assistant message:</p>
+      <ul>
+        <li>The plain text of that message is sent to the ElevenLabs API</li>
+        <li>Your ElevenLabs API key is sent for authentication</li>
+      </ul>
+      <p>If you do not configure an ElevenLabs API key or use the free browser voice engine, no data is sent to ElevenLabs. ElevenLabs' own <a href="https://elevenlabs.io/privacy" target="_blank">privacy policy</a> governs how they handle API requests.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data sent to Google (fonts.googleapis.com)</h2>
+      <p>If you select a non-system font in Settings (Inter, DM Sans, IBM Plex Sans, or Source Sans 3), a single font file request is made to Google Fonts. If you use the default "System" font, no request to Google is made.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data NOT collected</h2>
+      <ul>
+        <li>No analytics, telemetry, or usage tracking of any kind</li>
+        <li>No browsing history, page URLs, or tab information is stored or transmitted beyond the active conversation context</li>
+        <li>No data is sent to any server operated by the extension developer</li>
+        <li>No cookies are set or read</li>
+        <li>No personal information is collected, sold, or shared with third parties</li>
+        <li>Settings exports explicitly exclude API keys</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>Permissions used</h2>
+      <ul>
+        <li><strong>storage</strong> — Saves your settings and preferences locally in the browser</li>
+        <li><strong>activeTab</strong> — Reads the current page content when you click the extension icon, and captures screenshots when you click the camera button</li>
+        <li><strong>scripting</strong> — Injects the chat interface into the active tab when you click the extension icon</li>
+        <li><strong>downloads</strong> — Saves conversation logs and audio files to your Downloads folder when a tab closes</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>Data retention</h2>
+      <p>Conversation data is held in memory while the tab is open and written to your local Downloads folder when the tab closes. It is then removed from browser storage. Settings persist until you uninstall the extension or clear extension data.</p>
+      <p>You can delete saved conversation files from your Downloads folder at any time. Uninstalling the extension removes all stored settings and API keys.</p>
+    </div>
+
+    <div class="section">
+      <h2>Children's privacy</h2>
+      <p>Sidekick is not directed at children under 13 and does not knowingly collect any personal information from children.</p>
+    </div>
+
+    <div class="section">
+      <h2>Changes to this policy</h2>
+      <p>If this policy is updated, the "Last updated" date at the top will change. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
+    </div>
+
+    <div class="section">
+      <h2>Contact</h2>
+      <p>For questions about this privacy policy, open an issue on the <a href="https://github.com/madebysan/chrome-sidekick" target="_blank">GitHub repository</a>.</p>
+    </div>
+  </div>
+</body>
+</html>
