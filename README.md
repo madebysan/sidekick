@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icons/icon128.png" width="128" height="128" alt="Sidekick app icon">
+  <img src="screenshots/icon.png" width="128" height="128" alt="Sidekick app icon">
 </p>
 
 <h1 align="center">Sidekick</h1>
@@ -16,9 +16,7 @@ Extracts page content and YouTube transcripts as context automatically.</p>
 ## Install
 
 <p align="center">
-  <a href="https://chromewebstore.google.com/detail/sidekick/EXTENSION_ID_HERE">
-    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available on the Chrome Web Store" width="248">
-  </a>
+  <img src="screenshots/chrome-web-store.png" alt="Available on the Chrome Web Store" width="206">
 </p>
 
 Or install from source:
