@@ -8,6 +8,7 @@
 Extracts page content and YouTube transcripts as context automatically.</p>
 
 <p align="center">Chrome · Manifest V3 · Uses your own API key</p>
+<p align="center"><a href="#install"><strong>Install Sidekick</strong></a></p>
 
 <p align="center">
   <img src="screenshots/hero.png" width="600" alt="Sidekick — command pills, autocomplete, and YouTube transcript summary">
