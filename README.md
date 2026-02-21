@@ -9,39 +9,51 @@ Extracts page content and YouTube transcripts as context automatically.</p>
 
 <p align="center">Chrome · Manifest V3 · Uses your own API key</p>
 
-## Features
-
-- **Page context** — Automatically extracts the current page's text content and sends it as context
-- **YouTube transcripts** — On YouTube videos, extracts the full transcript with timestamps instead of page text
-- **Screenshot capture** — Click the camera button to screenshot the visible page and ask Claude about it
-- **Streaming responses** — Real-time token-by-token streaming from the API
-- **Markdown rendering** — Responses render with proper formatting (bold, code blocks, headers, lists, links)
-- **Image support** — Drag and drop images into the chat to ask about them
-- **Text-to-Speech** — Listen to responses with browser voices (free) or ElevenLabs (premium). Play, pause, and resume controls on each message.
-- **Copy responses** — Hover over any response to reveal copy and speak buttons
-- **Auto-save conversations** — Conversations and ElevenLabs audio are automatically saved as markdown + MP3 files when a tab closes
-- **Dark mode** — Auto (follows system), Light, or Dark theme
-- **Custom system prompt** — Add persistent instructions to every conversation (e.g. "always respond in Spanish")
-- **Multiple models** — Choose from Opus 4, Sonnet 4, Haiku 4.5, or Haiku 3.5
-- **Slash commands** — Built-in commands like `/tldr` and `/explain`, plus create your own
-- **Command pills** — Quick-access buttons on the welcome screen for all your commands
-- **Command autocomplete** — Type `/` to see available commands with descriptions
-- **Conversation download** — Export any conversation as a `.md` file
-- **Resizable window** — Drag the left, top, or corner edges to resize; size is remembered
-- **Full-height by default** — Opens at full viewport height for maximum reading space
-- **Font selection** — Choose from 5 fonts (System, Inter, DM Sans, IBM Plex Sans, Source Sans 3)
-- **Settings export/import** — Back up and restore your settings and custom commands
-- **Per-tab isolation** — Each tab has its own independent conversation
-- **Shadow DOM isolation** — The chat UI is fully isolated from the host page's styles
-
 ## Install
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/sidekick/EXTENSION_ID_HERE">
+    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available on the Chrome Web Store" width="248">
+  </a>
+</p>
+
+Or install from source:
 
 1. Clone or download this repository
 2. Open `chrome://extensions` in Chrome
 3. Enable **Developer mode** (top-right toggle)
-4. Click **Load unpacked** and select the `sidekick` folder
+4. Click **Load unpacked** and select the project folder
 5. Click the extension icon on any page to open the chat
-6. Click the gear icon to open settings and enter your [API key](https://console.anthropic.com/settings/keys)
+6. Click the gear icon to enter your [API key](https://console.anthropic.com/settings/keys)
+
+## Features
+
+**Automatic context extraction** — Open Sidekick on any webpage and it reads the page content for you. On YouTube, it grabs the full transcript with timestamps instead. Ask questions, get summaries, or analyze what you're reading — the AI already knows what's on the page.
+
+**Screenshot capture** — Click the camera button to screenshot the visible page and ask about what you see. Uses the same vision pipeline as drag-and-drop images.
+
+**Slash commands** — Type `/tldr` for a summary, `/explain` for a simple breakdown, `/key` for takeaways, or `/translate` to translate. Create your own custom commands in Settings. Commands appear as clickable pills on the welcome screen.
+
+**Text-to-Speech** — Listen to any response with browser voices (free) or ElevenLabs (premium). Play, pause, and resume controls on each message.
+
+<details>
+<summary><strong>More features</strong></summary>
+
+- **Image support** — Drag and drop images into the chat to ask about them
+- **Streaming responses** — Real-time token-by-token streaming from the API
+- **Markdown rendering** — Responses render with proper formatting (bold, code blocks, headers, lists, links)
+- **Auto-save conversations** — Conversations and audio are saved as markdown + MP3 files when a tab closes
+- **Multiple models** — Opus 4, Sonnet 4, Haiku 4.5, or Haiku 3.5
+- **Custom system prompt** — Persistent instructions for every conversation (e.g. "always respond in Spanish")
+- **Dark mode** — Auto (follows system), Light, or Dark
+- **Resizable window** — Drag edges to resize; opens at full viewport height by default
+- **Font selection** — System, Inter, DM Sans, IBM Plex Sans, or Source Sans 3
+- **Conversation download** — Export any conversation as a `.md` file
+- **Settings export/import** — Back up and restore settings and commands (API keys excluded)
+- **Per-tab isolation** — Each tab has its own independent conversation
+- **Shadow DOM isolation** — Chat UI is fully isolated from the host page's styles
+
+</details>
 
 ## Usage
 
