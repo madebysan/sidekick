@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const elevenLabsVoiceSelect = document.getElementById('elevenLabsVoice');
   const refreshElevenLabsBtn = document.getElementById('refreshElevenLabsVoices');
   const testElevenLabsBtn = document.getElementById('testElevenLabsVoice');
+  const useDefaultVoiceCheckbox = document.getElementById('useDefaultVoice');
 
   let commands = [];
   let editingIndex = -1; // -1 = creating new, >= 0 = editing
@@ -46,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ─── Load saved settings ────────────────────────────────────────────
   chrome.storage.local.get(
     ['apiKey', 'model', 'maxContext', 'fontFamily', 'commands', 'theme', 'customSystemPrompt',
-     'ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice'],
+     'ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice', 'useDefaultVoice'],
     (result) => {
       if (result.apiKey) apiKeyInput.value = result.apiKey;
       if (result.model) modelSelect.value = result.model;
@@ -62,6 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       commands = result.commands || [...DEFAULT_COMMANDS];
       renderCommands();
+
+      // Default voice toggle
+      useDefaultVoiceCheckbox.checked = !!result.useDefaultVoice;
 
       // TTS settings
       if (result.ttsEngine) ttsEngineSelect.value = result.ttsEngine;
@@ -98,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (radio.checked) save('fontFamily', radio.value);
     });
   });
+
+  useDefaultVoiceCheckbox.addEventListener('change', () => save('useDefaultVoice', useDefaultVoiceCheckbox.checked));
 
   // ─── API key visibility toggle ──────────────────────────────────────
   toggleApiKeyBtn.addEventListener('click', () => {
