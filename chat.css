@@ -26,7 +26,7 @@
   font-family: var(--chat-font), system-ui, -apple-system, sans-serif;
   color-scheme: light dark;
   width: 400px;
-  height: calc(100vh - 32px);
+  height: calc(100vh - 92px);
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -652,6 +652,148 @@
   opacity: 1;
 }
 
+/* Duration estimate — displayed via CSS ::after from data attribute.
+   This survives innerHTML changes to the button text. */
+.message-speak-btn[data-duration]::after {
+  content: " · " attr(data-duration);
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+/* Hide duration while playing/paused or showing error */
+.message-speak-btn.speaking::after,
+.message-speak-btn.speak-error::after {
+  display: none;
+}
+
+/* ─── Voice picker ──────────────────────────────────────────── */
+.voice-picker-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+}
+
+.voice-picker {
+  position: absolute;
+  z-index: 20;
+  max-height: 280px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fadeIn 0.1s ease;
+}
+
+.voice-picker-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.voice-picker-tab {
+  flex: 1;
+  padding: 7px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  font-family: var(--chat-font), system-ui, -apple-system, sans-serif;
+}
+
+.voice-picker-tab:hover {
+  background: var(--bg-secondary);
+}
+
+.voice-picker-tab.active {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.voice-picker-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.voice-picker-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.voice-picker-list::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+}
+
+.voice-picker-group {
+  padding: 6px 10px 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.voice-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+  font-family: var(--chat-font), system-ui, -apple-system, sans-serif;
+}
+
+.voice-picker-item:hover {
+  background: var(--bg-secondary);
+}
+
+.voice-picker-item.saved {
+  color: var(--accent);
+}
+
+.voice-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voice-item-lang {
+  font-size: 10px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.voice-item-badge {
+  font-size: 9px;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.voice-picker-loading,
+.voice-picker-empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
 /* ─── Dark theme ─────────────────────────────────────────── */
 .sidekick-container.theme-dark {
   --bg: #1e1e1e;
@@ -676,4 +818,8 @@
 
 .sidekick-container.theme-dark .message-content code {
   background: var(--bg-tertiary);
+}
+
+.sidekick-container.theme-dark .voice-picker {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }

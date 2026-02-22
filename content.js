@@ -372,9 +372,18 @@
         }
         updateSendButton(container, false);
         assistantBubble.querySelector('.streaming-cursor')?.remove();
-        // Enable speak button now that streaming is complete
+        // Enable speak button and set estimated listen duration
         const speakBtn = assistantBubble.querySelector('.message-speak-btn');
-        if (speakBtn) speakBtn.disabled = false;
+        if (speakBtn) {
+          speakBtn.disabled = false;
+          // Calculate duration from raw response text
+          const rawText = finalText || fullText || '';
+          const duration = estimateAudioDuration(rawText);
+          if (duration) {
+            // Store as data attribute — CSS ::after displays it automatically
+            speakBtn.dataset.duration = duration;
+          }
+        }
         // Sync conversation to storage for auto-save on tab close
         syncConversation();
       },
@@ -452,35 +461,47 @@
     paused: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
   };
 
+  // Estimate audio duration from word count
+  // Average human reading-aloud rate: ~150 words per minute
+  function estimateAudioDuration(text) {
+    if (!text) return '';
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return '';
+    const minutes = words.length / 150;
+    if (minutes < 1) return '<1 min';
+    return `~${Math.round(minutes)} min`;
+  }
+
   function handleSpeakClick(bubble, btn) {
     if (!ttsEngine) return;
     const state = btn.dataset.state;
-    const bubbleId = bubble.dataset.bubbleId;
 
     if (state === 'idle') {
-      // Start playback — load TTS settings first
-      chrome.storage.local.get(['ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice'], (settings) => {
-        // Check ElevenLabs config before attempting
-        if (settings.ttsEngine === 'elevenlabs' && (!settings.elevenLabsApiKey || !settings.elevenLabsVoice)) {
-          btn.innerHTML = `${SPEAK_ICONS.idle} No voice set`;
-          btn.classList.add('speak-error');
-          setTimeout(() => {
-            btn.innerHTML = `${SPEAK_ICONS.idle} Speak`;
-            btn.classList.remove('speak-error');
-          }, 2000);
-          return;
+      // Check if user wants to auto-play with their default voice
+      chrome.storage.local.get(
+        ['useDefaultVoice', 'ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice'],
+        (settings) => {
+          if (settings.useDefaultVoice) {
+            // Auto-play with saved default voice
+            resetAllSpeakButtons();
+            const playSettings = {
+              ttsEngine: settings.ttsEngine || 'local',
+              localTtsVoice: settings.localTtsVoice || '',
+              elevenLabsApiKey: settings.elevenLabsApiKey || '',
+              elevenLabsVoice: settings.elevenLabsVoice || ''
+            };
+            const text = bubble.querySelector('.message-content').innerText;
+            const bubbleId = bubble.dataset.bubbleId;
+            ttsEngine.play(text, bubbleId, playSettings, (newState) => {
+              updateSpeakButton(btn, newState);
+              if (newState === 'ended') syncConversation();
+            });
+          } else {
+            // Show voice picker so the user can choose
+            showVoicePicker(bubble, btn);
+          }
         }
-
-        // Reset all other speak buttons
-        resetAllSpeakButtons();
-
-        const text = bubble.querySelector('.message-content').innerText;
-        ttsEngine.play(text, bubbleId, settings, (newState) => {
-          updateSpeakButton(btn, newState);
-          // Re-sync conversation after audio finishes so the blob gets saved
-          if (newState === 'ended') syncConversation();
-        });
-      });
+      );
     } else if (state === 'playing') {
       ttsEngine.pause();
     } else if (state === 'paused') {
@@ -497,8 +518,18 @@
       btn.dataset.state = 'paused';
       btn.innerHTML = `${SPEAK_ICONS.paused} Resume`;
       btn.classList.add('speaking');
+    } else if (state === 'error') {
+      // Show error briefly, then reset to idle
+      btn.dataset.state = 'idle';
+      btn.innerHTML = `${SPEAK_ICONS.idle} Failed`;
+      btn.classList.remove('speaking');
+      btn.classList.add('speak-error');
+      setTimeout(() => {
+        btn.innerHTML = `${SPEAK_ICONS.idle} Speak`;
+        btn.classList.remove('speak-error');
+      }, 2500);
     } else {
-      // 'ended' or 'error' — reset to idle
+      // 'ended' — reset to idle
       btn.dataset.state = 'idle';
       btn.innerHTML = `${SPEAK_ICONS.idle} Speak`;
       btn.classList.remove('speaking');
@@ -507,11 +538,168 @@
 
   function resetAllSpeakButtons() {
     if (!shadowRoot) return;
+    hideVoicePicker();
     shadowRoot.querySelectorAll('.message-speak-btn').forEach(btn => {
       btn.dataset.state = 'idle';
       btn.innerHTML = `${SPEAK_ICONS.idle} Speak`;
       btn.classList.remove('speaking');
     });
+  }
+
+  // ─── VOICE PICKER ──────────────────────────────────────────────
+  function showVoicePicker(bubble, btn) {
+    hideVoicePicker();
+
+    const container = shadowRoot.querySelector('.sidekick-container');
+
+    // Transparent backdrop to catch outside clicks and close the picker
+    const backdrop = document.createElement('div');
+    backdrop.className = 'voice-picker-backdrop';
+    backdrop.addEventListener('click', hideVoicePicker);
+    container.appendChild(backdrop);
+
+    // Picker element — positioned above the speak button, full panel width
+    const picker = document.createElement('div');
+    picker.className = 'voice-picker';
+    const btnRect = btn.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    picker.style.bottom = (containerRect.bottom - btnRect.top + 4) + 'px';
+    picker.style.left = '8px';
+    picker.style.right = '8px';
+
+    // Load settings to build the picker UI
+    chrome.storage.local.get(['ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice'], (settings) => {
+      const currentEngine = settings.ttsEngine || 'local';
+      const hasElevenLabs = !!settings.elevenLabsApiKey;
+
+      // Only show engine tabs if both engines are available
+      let tabsHTML = '';
+      if (hasElevenLabs) {
+        tabsHTML = `<div class="voice-picker-tabs">
+          <button class="voice-picker-tab ${currentEngine === 'local' ? 'active' : ''}" data-engine="local">Browser</button>
+          <button class="voice-picker-tab ${currentEngine === 'elevenlabs' ? 'active' : ''}" data-engine="elevenlabs">ElevenLabs</button>
+        </div>`;
+      }
+
+      picker.innerHTML = `${tabsHTML}<div class="voice-picker-list"><div class="voice-picker-loading">Loading voices...</div></div>`;
+      container.appendChild(picker);
+
+      // Load voices for the active engine
+      populateVoiceList(picker, currentEngine, settings, bubble, btn);
+
+      // Tab switching
+      picker.querySelectorAll('.voice-picker-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          picker.querySelectorAll('.voice-picker-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          picker.querySelector('.voice-picker-list').innerHTML = '<div class="voice-picker-loading">Loading voices...</div>';
+          populateVoiceList(picker, tab.dataset.engine, settings, bubble, btn);
+        });
+      });
+    });
+  }
+
+  function hideVoicePicker() {
+    if (!shadowRoot) return;
+    const container = shadowRoot.querySelector('.sidekick-container');
+    if (!container) return;
+    const backdrop = container.querySelector('.voice-picker-backdrop');
+    const picker = container.querySelector('.voice-picker');
+    if (backdrop) backdrop.remove();
+    if (picker) picker.remove();
+  }
+
+  async function populateVoiceList(picker, engine, settings, bubble, btn) {
+    const list = picker.querySelector('.voice-picker-list');
+
+    try {
+      if (engine === 'local') {
+        const voices = await ttsEngine.getLocalVoices();
+        const english = voices.filter(v => v.lang.startsWith('en'));
+        const other = voices.filter(v => !v.lang.startsWith('en'));
+        const savedVoice = settings.localTtsVoice || '';
+
+        let html = '';
+        if (english.length > 0) {
+          html += '<div class="voice-picker-group">English</div>';
+          english.forEach(v => {
+            const isSaved = v.name === savedVoice;
+            html += `<button class="voice-picker-item ${isSaved ? 'saved' : ''}" data-engine="local" data-voice-id="${escapeHtml(v.name)}">
+              <span class="voice-item-name">${escapeHtml(v.name)}</span>
+              <span class="voice-item-lang">${escapeHtml(v.lang)}</span>
+              ${isSaved ? '<span class="voice-item-badge">default</span>' : ''}
+            </button>`;
+          });
+        }
+        if (other.length > 0) {
+          html += '<div class="voice-picker-group">Other Languages</div>';
+          other.forEach(v => {
+            const isSaved = v.name === savedVoice;
+            html += `<button class="voice-picker-item ${isSaved ? 'saved' : ''}" data-engine="local" data-voice-id="${escapeHtml(v.name)}">
+              <span class="voice-item-name">${escapeHtml(v.name)}</span>
+              <span class="voice-item-lang">${escapeHtml(v.lang)}</span>
+              ${isSaved ? '<span class="voice-item-badge">default</span>' : ''}
+            </button>`;
+          });
+        }
+        list.innerHTML = html || '<div class="voice-picker-empty">No voices available</div>';
+
+      } else if (engine === 'elevenlabs') {
+        if (!settings.elevenLabsApiKey) {
+          list.innerHTML = '<div class="voice-picker-empty">No API key configured.<br>Set it in Settings.</div>';
+          return;
+        }
+        const voices = await ttsEngine.getElevenLabsVoices(settings.elevenLabsApiKey);
+        const savedVoice = settings.elevenLabsVoice || '';
+
+        let html = '';
+        voices.forEach(v => {
+          const isSaved = v.voice_id === savedVoice;
+          const labels = v.labels ? Object.values(v.labels).join(', ') : '';
+          html += `<button class="voice-picker-item ${isSaved ? 'saved' : ''}" data-engine="elevenlabs" data-voice-id="${escapeHtml(v.voice_id)}">
+            <span class="voice-item-name">${escapeHtml(v.name)}</span>
+            ${labels ? `<span class="voice-item-lang">${escapeHtml(labels)}</span>` : ''}
+            ${isSaved ? '<span class="voice-item-badge">default</span>' : ''}
+          </button>`;
+        });
+        list.innerHTML = html || '<div class="voice-picker-empty">No voices found</div>';
+      }
+
+      // Wire up voice item clicks — selecting a voice starts playback
+      list.querySelectorAll('.voice-picker-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const selectedEngine = item.dataset.engine;
+          const voiceId = item.dataset.voiceId;
+
+          hideVoicePicker();
+          resetAllSpeakButtons();
+
+          // Build a settings object for this specific playback
+          const playSettings = {
+            ttsEngine: selectedEngine,
+            localTtsVoice: selectedEngine === 'local' ? voiceId : '',
+            elevenLabsApiKey: settings.elevenLabsApiKey || '',
+            elevenLabsVoice: selectedEngine === 'elevenlabs' ? voiceId : ''
+          };
+
+          const text = bubble.querySelector('.message-content').innerText;
+          const bubbleId = bubble.dataset.bubbleId;
+
+          ttsEngine.play(text, bubbleId, playSettings, (newState) => {
+            updateSpeakButton(btn, newState);
+            if (newState === 'ended') syncConversation();
+          });
+        });
+      });
+
+      // Scroll the saved/default voice into view
+      const savedItem = list.querySelector('.voice-picker-item.saved');
+      if (savedItem) savedItem.scrollIntoView({ block: 'center', behavior: 'instant' });
+
+    } catch (e) {
+      list.innerHTML = '<div class="voice-picker-empty">Failed to load voices</div>';
+      console.error('Sidekick: Voice picker error', e);
+    }
   }
 
   function updateSendButton(container, streaming) {
