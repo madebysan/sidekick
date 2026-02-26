@@ -17,6 +17,8 @@
   let currentFont = 'system-ui';
   let bubbleCounter = 0;   // For unique bubble IDs
   let currentTabId = null;  // Cached tab ID for conversation sync
+  let floatingBtn = null;   // Floating button element
+  let floatingBtnEnabled = false;
 
   // ─── LOAD ENGINES ─────────────────────────────────────────────────
   // chat.js and tts.js are loaded before content.js via manifest content_scripts order
@@ -44,7 +46,7 @@
         resolve(currentTabId);
         return;
       }
-      chrome.runtime.sendMessage({ action: 'getTabId' }, (tabId) => {
+      safeSendMessage({ action: 'getTabId' }, (tabId) => {
         currentTabId = tabId;
         resolve(tabId);
       });
@@ -78,9 +80,7 @@
       if (result.chatWidth) container.style.width = result.chatWidth + 'px';
       if (result.chatHeight) container.style.height = result.chatHeight + 'px';
       if (result.fontFamily) {
-        currentFont = result.fontFamily;
-        container.style.setProperty('--chat-font', currentFont);
-        loadGoogleFont(currentFont);
+        applyFont(result.fontFamily);
       }
       applyTheme(container, result.theme || 'auto');
     });
@@ -88,9 +88,7 @@
     // Listen for setting changes
     chrome.storage.onChanged.addListener((changes) => {
       if (changes.fontFamily) {
-        currentFont = changes.fontFamily.newValue || 'system-ui';
-        container.style.setProperty('--chat-font', currentFont);
-        loadGoogleFont(currentFont);
+        applyFont(changes.fontFamily.newValue || 'system-ui');
       }
       if (changes.theme) {
         applyTheme(container, changes.theme.newValue || 'auto');
@@ -196,7 +194,7 @@
         if (action === 'close') {
           toggleChat(false);
         } else if (action === 'settings') {
-          chrome.runtime.sendMessage({ action: 'openSettings' });
+          safeSendMessage({ action: 'openSettings' });
         } else if (action === 'download') {
           downloadConversation();
         } else if (action === 'screenshot') {
@@ -787,7 +785,7 @@
     const btn = container.querySelector('[data-action="screenshot"]');
     btn.classList.add('capturing');
 
-    chrome.runtime.sendMessage({ action: 'captureScreenshot' }, (dataUrl) => {
+    safeSendMessage({ action: 'captureScreenshot' }, (dataUrl) => {
       btn.classList.remove('capturing');
 
       if (!dataUrl) {
@@ -894,8 +892,8 @@
       }
 
       function onMouseUp() {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
+        window.removeEventListener('mousemove', onMouseMove, true);
+        window.removeEventListener('mouseup', onMouseUp, true);
         // Save size
         chrome.storage.local.set({
           chatWidth: container.offsetWidth,
@@ -903,8 +901,8 @@
         });
       }
 
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+      window.addEventListener('mousemove', onMouseMove, true);
+      window.addEventListener('mouseup', onMouseUp, true);
     }
 
     container.querySelector('.resize-left').addEventListener('mousedown', (e) => startResize(e, ['left']));
@@ -1021,6 +1019,72 @@
     });
   }
 
+  // ─── FLOATING BUTTON ──────────────────────────────────────────────
+  function createFloatingButton() {
+    if (floatingBtn) return floatingBtn;
+
+    const btn = document.createElement('div');
+    btn.id = 'sidekick-fab';
+    btn.style.cssText = 'all:initial;position:fixed;bottom:20px;right:20px;z-index:2147483646;';
+
+    const fabShadow = btn.attachShadow({ mode: 'closed' });
+
+    // Load chat.css for theme variables, then add fab-specific styles
+    const cssLink = document.createElement('link');
+    cssLink.rel = 'stylesheet';
+    cssLink.href = chrome.runtime.getURL('chat.css');
+    fabShadow.appendChild(cssLink);
+
+    const fabEl = document.createElement('button');
+    fabEl.className = 'sidekick-fab-btn';
+
+    const img = document.createElement('img');
+    img.src = chrome.runtime.getURL('icons/icon32.png');
+    img.width = 20;
+    img.height = 20;
+    img.alt = 'Sidekick';
+    img.style.cssText = 'display:block;border-radius:4px;';
+    fabEl.appendChild(img);
+
+    fabEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleChat(true);
+    });
+
+    fabShadow.appendChild(fabEl);
+    document.body.appendChild(btn);
+    floatingBtn = btn;
+    return btn;
+  }
+
+  function showFloatingBtn() {
+    if (!floatingBtnEnabled) return;
+    if (!floatingBtn) createFloatingButton();
+    floatingBtn.style.display = 'block';
+  }
+
+  function hideFloatingBtn() {
+    if (floatingBtn) floatingBtn.style.display = 'none';
+  }
+
+  // Check setting and create button if enabled
+  chrome.storage.local.get('showFloatingButton', (result) => {
+    floatingBtnEnabled = !!result.showFloatingButton;
+    if (floatingBtnEnabled) showFloatingBtn();
+  });
+
+  // React to setting changes in real-time
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.showFloatingButton) {
+      floatingBtnEnabled = !!changes.showFloatingButton.newValue;
+      if (floatingBtnEnabled && !chatVisible) {
+        showFloatingBtn();
+      } else if (!floatingBtnEnabled) {
+        hideFloatingBtn();
+      }
+    }
+  });
+
   // ─── TOGGLE CHAT ────────────────────────────────────────────────────
   let chatContainer = null;
 
@@ -1059,30 +1123,52 @@
       host.style.display = show ? 'block' : 'none';
     }
 
+    // Toggle floating button visibility
+    if (show) {
+      hideFloatingBtn();
+    } else {
+      showFloatingBtn();
+    }
+
     if (show && chatContainer) {
       chatContainer.querySelector('.chat-input').focus();
     }
   }
 
-  // ─── GOOGLE FONTS (privacy-aware: only loads when non-system font selected)
+  // ─── FONT APPLICATION ──────────────────────────────────────────────
+  // Uses a <style> element in the shadow root to override the --chat-font
+  // variable. More reliable than inline style.setProperty for CSS custom
+  // properties in Shadow DOM contexts.
   const loadedFonts = new Set();
-  function loadGoogleFont(fontValue) {
-    // Don't load anything for system font
-    if (!fontValue || fontValue === 'system-ui') return;
-    // Extract font family name from CSS value like "'Inter', sans-serif"
-    const match = fontValue.match(/'([^']+)'/);
+
+  function applyFont(fontValue) {
+    currentFont = fontValue || 'system-ui';
+    if (!shadowRoot) return;
+
+    // Override --chat-font via a <style> element (appears after the <link>
+    // in DOM order, so same-specificity rules here win over chat.css)
+    let fontStyle = shadowRoot.getElementById('sidekick-font-override');
+    if (!fontStyle) {
+      fontStyle = document.createElement('style');
+      fontStyle.id = 'sidekick-font-override';
+      shadowRoot.appendChild(fontStyle);
+    }
+    fontStyle.textContent = `.sidekick-container { --chat-font: ${currentFont}; }`;
+
+    // Load the Google Font into the shadow root
+    if (!currentFont || currentFont === 'system-ui') return;
+    const match = currentFont.match(/'([^']+)'/);
     if (!match) return;
     const fontName = match[1];
     if (loadedFonts.has(fontName)) return;
     loadedFonts.add(fontName);
-    // Load only the specific font needed — @font-face must be in the main document
     const encodedName = fontName.replace(/ /g, '+');
     const url = `https://fonts.googleapis.com/css2?family=${encodedName}:wght@400;500;600&display=swap`;
-    if (!document.querySelector(`link[href="${url}"]`)) {
+    if (!shadowRoot.querySelector(`link[href="${url}"]`)) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = url;
-      document.head.appendChild(link);
+      shadowRoot.appendChild(link);
     }
   }
 
@@ -1115,6 +1201,17 @@
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  // Safe wrapper for chrome.runtime.sendMessage — catches "Extension context
+  // invalidated" errors that happen when the extension is reloaded but the
+  // page still has the old content script running.
+  function safeSendMessage(msg, callback) {
+    try {
+      chrome.runtime.sendMessage(msg, callback);
+    } catch (e) {
+      console.log('Sidekick: Extension was reloaded — please refresh the page.');
+    }
   }
 
   // ─── MESSAGE LISTENER ──────────────────────────────────────────────

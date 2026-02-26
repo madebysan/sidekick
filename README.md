@@ -16,12 +16,6 @@ Extracts page content and YouTube transcripts as context automatically.</p>
 
 ## Install
 
-<p align="center">
-  <img src="screenshots/chrome-web-store.png" alt="Available on the Chrome Web Store" width="206">
-</p>
-
-Or install from source:
-
 1. Clone or download this repository
 2. Open `chrome://extensions` in Chrome
 3. Enable **Developer mode** (top-right toggle)
@@ -50,6 +44,8 @@ Or install from source:
 <p align="center">
   <img src="screenshots/settings.png" width="600" alt="Sidekick — settings page with TTS, custom commands, and font selection">
 </p>
+
+**Floating button** — Enable a small Sidekick button that sits in the corner of every page. Click it to open the chat instantly, no toolbar icon needed. Toggle it on or off in Settings under Appearance.
 
 Also: drag-and-drop images · streaming responses · markdown rendering · auto-save conversations on tab close · multiple models · custom system prompt · dark mode · resizable window · font selection · conversation download · settings export/import · per-tab isolation · Shadow DOM isolation
 
@@ -90,6 +86,7 @@ Open settings via the gear icon in the chat header, or from `chrome://extensions
 | **ElevenLabs API Key** | Your ElevenLabs key for premium voice synthesis |
 | **ElevenLabs Voice** | Choose from available ElevenLabs voices |
 | **Save Location** | Conversations auto-save to `Downloads/Temp/sidekick-logs/` on tab close |
+| **Floating Button** | Show a small Sidekick button on every page to open the chat |
 | **Theme** | Auto (follows system), Light, or Dark |
 | **Font** | Choose the chat font from 5 options |
 | **Commands** | Add, edit, or delete custom slash commands |
