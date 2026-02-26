@@ -794,6 +794,31 @@
   color: var(--text-secondary);
 }
 
+/* ─── Floating action button ─────────────────────────────── */
+.sidekick-fab-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.15s, transform 0.15s;
+  padding: 0;
+}
+
+.sidekick-fab-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.sidekick-fab-btn:active {
+  transform: scale(0.95);
+}
+
 /* ─── Dark theme ─────────────────────────────────────────── */
 .sidekick-container.theme-dark {
   --bg: #1e1e1e;
