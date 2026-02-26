@@ -31,7 +31,7 @@
   "options_page": "options.html",
   "web_accessible_resources": [
     {
-      "resources": ["chat.css"],
+      "resources": ["chat.css", "icons/icon32.png"],
       "matches": ["http://*/*", "https://*/*"]
     }
   ]

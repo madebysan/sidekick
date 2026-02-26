@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const refreshElevenLabsBtn = document.getElementById('refreshElevenLabsVoices');
   const testElevenLabsBtn = document.getElementById('testElevenLabsVoice');
   const useDefaultVoiceCheckbox = document.getElementById('useDefaultVoice');
+  const showFloatingButtonCheckbox = document.getElementById('showFloatingButton');
 
   let commands = [];
   let editingIndex = -1; // -1 = creating new, >= 0 = editing
@@ -47,7 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ─── Load saved settings ────────────────────────────────────────────
   chrome.storage.local.get(
     ['apiKey', 'model', 'maxContext', 'fontFamily', 'commands', 'theme', 'customSystemPrompt',
-     'ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice', 'useDefaultVoice'],
+     'ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice', 'useDefaultVoice',
+     'showFloatingButton'],
     (result) => {
       if (result.apiKey) apiKeyInput.value = result.apiKey;
       if (result.model) modelSelect.value = result.model;
@@ -66,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Default voice toggle
       useDefaultVoiceCheckbox.checked = !!result.useDefaultVoice;
+
+      // Floating button toggle
+      showFloatingButtonCheckbox.checked = !!result.showFloatingButton;
 
       // TTS settings
       if (result.ttsEngine) ttsEngineSelect.value = result.ttsEngine;
@@ -104,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   useDefaultVoiceCheckbox.addEventListener('change', () => save('useDefaultVoice', useDefaultVoiceCheckbox.checked));
+  showFloatingButtonCheckbox.addEventListener('change', () => save('showFloatingButton', showFloatingButtonCheckbox.checked));
 
   // ─── API key visibility toggle ──────────────────────────────────────
   toggleApiKeyBtn.addEventListener('click', () => {
@@ -363,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ─── Export / Import ────────────────────────────────────────────────
   exportBtn.addEventListener('click', () => {
-    chrome.storage.local.get(['fontFamily', 'maxContext', 'model', 'commands', 'theme', 'customSystemPrompt'], (result) => {
+    chrome.storage.local.get(['fontFamily', 'maxContext', 'model', 'commands', 'theme', 'customSystemPrompt', 'showFloatingButton'], (result) => {
       const data = {
         version: 1,
         exportedAt: new Date().toISOString(),
@@ -372,7 +378,8 @@ document.addEventListener('DOMContentLoaded', () => {
           maxContext: result.maxContext || 10000,
           model: result.model || 'claude-sonnet-4-20250514',
           theme: result.theme || 'auto',
-          customSystemPrompt: result.customSystemPrompt || ''
+          customSystemPrompt: result.customSystemPrompt || '',
+          showFloatingButton: !!result.showFloatingButton
         },
         commands: result.commands || []
       };
@@ -411,6 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.settings.model) updates.model = data.settings.model;
         if (data.settings.theme) updates.theme = data.settings.theme;
         if (data.settings.customSystemPrompt !== undefined) updates.customSystemPrompt = data.settings.customSystemPrompt;
+        if (data.settings.showFloatingButton !== undefined) updates.showFloatingButton = data.settings.showFloatingButton;
 
         // Merge commands (add new, update existing by name)
         if (data.commands && Array.isArray(data.commands)) {
@@ -438,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (updates.maxContext) maxContextInput.value = updates.maxContext;
           if (updates.model) modelSelect.value = updates.model;
           if (updates.customSystemPrompt !== undefined) customSystemPromptInput.value = updates.customSystemPrompt;
+          if (updates.showFloatingButton !== undefined) showFloatingButtonCheckbox.checked = updates.showFloatingButton;
           renderCommands();
           showStatus('Settings imported (API key not included in imports)');
         });
