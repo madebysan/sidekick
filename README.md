@@ -170,6 +170,10 @@ This extension is designed to keep your data local. Here's exactly what happens:
 - An [API key](https://console.anthropic.com/settings/keys) from Anthropic
 - (Optional) An [ElevenLabs API key](https://elevenlabs.io) for premium text-to-speech
 
+## Feedback
+
+Found a bug or have a feature idea? [Open an issue](https://github.com/madebysan/sidekick/issues).
+
 ## License
 
 [MIT](LICENSE)
