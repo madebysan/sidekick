@@ -34,5 +34,8 @@
       "resources": ["chat.css", "icons/icon32.png"],
       "matches": ["http://*/*", "https://*/*"]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com https://api.elevenlabs.io"
+  }
 }
