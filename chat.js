@@ -334,8 +334,19 @@ function renderMarkdown(text) {
   // Italic (*...*)
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-  // Links [text](url)
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // Links [text](url) — whitelist safe schemes only to block javascript:, data:, file:, etc.
+  const SAFE_SCHEMES = ['http:', 'https:', 'mailto:', 'tel:'];
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+    const trimmed = url.trim();
+    let safe = false;
+    try {
+      const parsed = new URL(trimmed, 'https://invalid.local');
+      safe = SAFE_SCHEMES.includes(parsed.protocol) ||
+             (parsed.origin === 'https://invalid.local' && trimmed.startsWith('/'));
+    } catch { safe = false; }
+    if (!safe) return text;
+    return `<a href="${trimmed.replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+  });
 
   // Unordered lists (- item or * item)
   html = html.replace(/^(\s*)[*-]\s+(.+)$/gm, '$1<li>$2</li>');
