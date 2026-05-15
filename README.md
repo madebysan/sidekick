@@ -1,24 +1,22 @@
-<p align="center">
-  <img src="screenshots/icon.png" width="128" height="128" alt="Sidekick app icon">
-</p>
+<p><img src="screenshots/icon.png" width="128" height="128" alt="Sidekick app icon"></p>
 
-<h1 align="center">Sidekick</h1>
+<h1>Sidekick</h1>
 
-<p align="center">Chat with AI about the page you're reading.<br>
+<p>Chat with AI about the page you're reading.<br>
 A private floating chat. Not an AI browser, not a sidebar. Bring your own API key.</p>
 
-<p align="center">Chrome · Manifest V3</p>
-<p align="center">
+<p>
+  <img src="https://img.shields.io/badge/Chrome-4285f4" alt="Chrome">
+  <img src="https://img.shields.io/badge/Manifest%20V3-4285f4" alt="Manifest V3">
+  <img src="https://img.shields.io/badge/JavaScript-f7df1e" alt="JavaScript">
+  <img src="https://img.shields.io/badge/Claude%20API-d97757" alt="Claude API">
+</p>
+
+<p>
   <a href="https://chromewebstore.google.com/detail/sidekick/bniahajjmpkajkpeelflghnaapjgmcbn"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/mPGKYBIR2uCP0ApchDXE.png" alt="Available in the Chrome Web Store" height="58"></a>
 </p>
 
-<div align="center">
-
 https://github.com/user-attachments/assets/7db58286-4408-4089-ad71-3491e354b1b4
-
-</div>
-
----
 
 Most AI browser integrations prioritize convenience over privacy. Some AI Chrome extensions are decent, but they usually just are sidebar chats. My use cases are simple: I'm reading something or watching a video, and I want to act on that content, either save it, summarize it, or run it through different commands/prompts. It doesn't need to proactively take screenshots of what I'm doing or read my content. I built Sidekick with all of this in mind.
 
