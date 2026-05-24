@@ -10,6 +10,7 @@ A private floating chat. Not an AI browser, not a sidebar. Bring your own API ke
   <img src="https://img.shields.io/badge/Manifest%20V3-4285f4" alt="Manifest V3">
   <img src="https://img.shields.io/badge/JavaScript-f7df1e" alt="JavaScript">
   <img src="https://img.shields.io/badge/Claude%20API-d97757" alt="Claude API">
+  <img src="https://img.shields.io/badge/DeepSeek%20V4-4d6bfe" alt="DeepSeek V4">
 </p>
 
 <p>
@@ -33,7 +34,7 @@ Sidekick is not for people who want an autonomous browsing agent. It's for those
 3. Enable **Developer mode** (top-right toggle)
 4. Click **Load unpacked** and select the project folder
 5. Click the extension icon on any page to open the chat
-6. Click the gear icon to enter your [API key](https://console.anthropic.com/settings/keys)
+6. Click the gear icon, pick your provider (Anthropic or DeepSeek), and enter your API key
 
 ## Keyboard shortcut
 
