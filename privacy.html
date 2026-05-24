@@ -38,7 +38,7 @@
 <body>
   <div class="container">
     <h1>Sidekick Privacy Policy</h1>
-    <p class="subtitle">Last updated: February 21, 2026</p>
+    <p class="subtitle">Last updated: May 24, 2026</p>
 
     <div class="section">
       <h2>Overview</h2>
@@ -50,7 +50,7 @@
       <p>The following data is stored locally in your browser using <code>chrome.storage.local</code> and is never transmitted to any server:</p>
       <ul>
         <li><strong>Settings and preferences</strong> — theme, font, model selection, max context length, custom system prompt</li>
-        <li><strong>API keys</strong> — your Anthropic API key and optional ElevenLabs API key are stored locally and only sent to their respective APIs when making requests</li>
+        <li><strong>API keys</strong> — your Anthropic and/or DeepSeek API key, plus an optional ElevenLabs API key, are stored locally and only sent to their respective APIs when making requests</li>
         <li><strong>Custom slash commands</strong> — command names and prompt text you create</li>
         <li><strong>UI state</strong> — chat window size</li>
         <li><strong>Conversation data</strong> — temporarily stored while a tab is open, used for auto-saving when the tab closes</li>
@@ -59,16 +59,16 @@
     </div>
 
     <div class="section">
-      <h2>Data sent to Anthropic (api.anthropic.com)</h2>
-      <p>When you send a message in the chat, the following is transmitted directly from your browser to the Anthropic API:</p>
+      <h2>Data sent to your AI provider (Anthropic or DeepSeek)</h2>
+      <p>You choose the provider in Settings. When you send a message in the chat, the following is transmitted directly from your browser to that provider's API (<code>api.anthropic.com</code> for Claude, <code>api.deepseek.com</code> for DeepSeek):</p>
       <ul>
         <li>Your message text and conversation history for the current tab</li>
         <li>Page content or YouTube transcript text, if context is active</li>
-        <li>Images you attach via drag-and-drop or screenshot (sent as base64-encoded data)</li>
-        <li>Your Anthropic API key (for authentication)</li>
+        <li>Images you attach via drag-and-drop or screenshot, sent as base64-encoded data. DeepSeek models are text-only, so images are sent only when a Claude model is selected.</li>
+        <li>The API key for the selected provider (for authentication)</li>
         <li>The selected model name</li>
       </ul>
-      <p>API calls go directly from your browser to Anthropic. No proxy server or intermediary is involved. Anthropic's own <a href="https://www.anthropic.com/privacy" target="_blank">privacy policy</a> governs how they handle API requests.</p>
+      <p>API calls go directly from your browser to the provider. No proxy server or intermediary is involved. The provider's own privacy policy governs how they handle API requests: <a href="https://www.anthropic.com/privacy" target="_blank">Anthropic</a> and <a href="https://www.deepseek.com/privacy" target="_blank">DeepSeek</a>.</p>
     </div>
 
     <div class="section">

@@ -1,6 +1,39 @@
 // API streaming, message history, markdown rendering, and commands
 // This file is loaded inside content.js scope (not a separate script)
 
+// Provider config. DeepSeek exposes an Anthropic-compatible Messages API, so
+// the request body and SSE response shape are identical to Anthropic's — only
+// the endpoint, auth headers, and image support differ. Keep this the single
+// source of truth for both. (Must stay in sync with PROVIDERS in options.js.)
+const PROVIDERS = {
+  anthropic: {
+    endpoint: 'https://api.anthropic.com/v1/messages',
+    defaultModel: 'claude-sonnet-4-20250514',
+    supportsImages: true,
+    bodyExtras: {},
+    buildHeaders: (key) => ({
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    })
+  },
+  deepseek: {
+    endpoint: 'https://api.deepseek.com/anthropic/v1/messages',
+    defaultModel: 'deepseek-v4-flash',
+    supportsImages: false,
+    // DeepSeek V4 turns on chain-of-thought by default, which adds latency and
+    // burns the token budget before any answer streams. Disable it for a snappy
+    // chat; the answer arrives immediately as text_delta.
+    bodyExtras: { thinking: { type: 'disabled' } },
+    buildHeaders: (key) => ({
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01'
+    })
+  }
+};
+
 /**
  * Create a ChatEngine instance for a single tab
  */
@@ -94,11 +127,26 @@ function createChatEngine() {
   async function sendMessage(userText, images, onToken, onDone, onError) {
     // Get settings
     const settings = await new Promise(resolve => {
-      chrome.storage.local.get(['apiKey', 'model', 'maxContext', 'customSystemPrompt'], resolve);
+      chrome.storage.local.get(
+        ['provider', 'apiKey', 'model', 'deepseekApiKey', 'deepseekModel', 'maxContext', 'customSystemPrompt'],
+        resolve
+      );
     });
 
-    if (!settings.apiKey) {
+    // Resolve the active provider, key, and model
+    const providerId = settings.provider === 'deepseek' ? 'deepseek' : 'anthropic';
+    const provider = PROVIDERS[providerId];
+    const apiKey = providerId === 'deepseek' ? settings.deepseekApiKey : settings.apiKey;
+    const model = (providerId === 'deepseek' ? settings.deepseekModel : settings.model) || provider.defaultModel;
+
+    if (!apiKey) {
       onError('No API key set. Click the gear icon to open settings.');
+      return;
+    }
+
+    // DeepSeek has no vision — block image sends with a clear message instead of a raw API error
+    if (images && images.length > 0 && !provider.supportsImages) {
+      onError('DeepSeek models don’t support images. Switch to a Claude model in Settings to analyze images.');
       return;
     }
 
@@ -128,12 +176,12 @@ function createChatEngine() {
     messages.push({ role: 'user', content: userContent });
 
     // Build API request
-    const model = settings.model || 'claude-sonnet-4-20250514';
     const body = {
       model: model,
       max_tokens: 4096,
       stream: true,
-      messages: messages.map(m => ({ role: m.role, content: m.content }))
+      messages: messages.map(m => ({ role: m.role, content: m.content })),
+      ...provider.bodyExtras
     };
 
     const finalSystemPrompt = buildSystemPrompt(settings.customSystemPrompt || '');
@@ -146,14 +194,9 @@ function createChatEngine() {
     isStreaming = true;
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch(provider.endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': settings.apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
+        headers: provider.buildHeaders(apiKey),
         body: JSON.stringify(body),
         signal: abortController.signal
       });

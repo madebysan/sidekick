@@ -79,8 +79,9 @@ Open via the gear icon in the chat header, or from `chrome://extensions` → Sid
 
 | Setting | Description |
 |---------|-------------|
-| **API Key** | Your Anthropic API key (starts with `sk-ant-`) |
-| **Model** | Opus 4 (smartest), Sonnet 4 (recommended), Haiku 4.5 (fastest), Haiku 3.5 (budget) |
+| **Provider** | Anthropic (Claude) or DeepSeek. Each keeps its own API key and model, so you can switch without re-entering keys. |
+| **API Key** | Key for the selected provider. Anthropic keys start with `sk-ant-`; get a DeepSeek key at [platform.deepseek.com](https://platform.deepseek.com/api_keys). |
+| **Model** | Claude: Opus 4 (smartest), Sonnet 4 (recommended), Haiku 4.5 (fastest), Haiku 3.5 (budget). DeepSeek: V4 Pro (smartest), V4 Flash (fast & cheap). |
 | **Custom System Prompt** | Added to every conversation (optional) |
 | **Max Context** | Maximum characters of page content to send (default: 10,000) |
 | **TTS Engine** | Browser (free) or ElevenLabs (premium) |
@@ -109,7 +110,7 @@ Add text after any command to refine it. Create your own in Settings.
 
 There is no Sidekick server. API keys, conversations, and settings stay in `chrome.storage.local`. Nothing leaves the browser unless you send a message or click **Speak**.
 
-- Messages, page content, and any attached images go directly from your browser to `api.anthropic.com`. Anthropic sees your IP address.
+- Messages, page content, and any attached images go directly from your browser to the provider you pick: `api.anthropic.com` for Claude or `api.deepseek.com` for DeepSeek. That provider sees your IP address. DeepSeek is text-only, so images are sent only when a Claude model is selected.
 - TTS text and the ElevenLabs key go to `api.elevenlabs.io` only when you enable ElevenLabs and click **Speak**.
 - Non-system fonts load from `fonts.googleapis.com`. The default "System Default" option makes no Google request.
 - No analytics, telemetry, tracking, or browsing-history collection. Settings exports exclude API keys.
@@ -117,7 +118,7 @@ There is no Sidekick server. API keys, conversations, and settings stay in `chro
 ## Requirements
 
 - Chrome (or Chromium-based browser)
-- An [Anthropic API key](https://console.anthropic.com/settings/keys)
+- An [Anthropic API key](https://console.anthropic.com/settings/keys) for Claude, or a [DeepSeek API key](https://platform.deepseek.com/api_keys) for DeepSeek V4
 - (Optional) An [ElevenLabs API key](https://elevenlabs.io) for premium text-to-speech
 
 ## Known limitations
@@ -128,7 +129,7 @@ There is no Sidekick server. API keys, conversations, and settings stay in `chro
 ## Tech stack
 
 - Chrome Manifest V3. Vanilla JavaScript, no framework, no build step.
-- Anthropic REST API. Chat completions and vision, called directly from the browser via `fetch` with the `anthropic-dangerous-direct-browser-access` header.
+- Anthropic Messages API for Claude chat and vision, plus DeepSeek's Anthropic-compatible endpoint for DeepSeek V4. Both are called directly from the browser via `fetch`, and since the response shape is identical, one streaming parser handles both.
 - Web Speech API + ElevenLabs REST API for TTS.
 - Shadow DOM for UI isolation from the host page's CSS and JavaScript.
 - Zero npm dependencies.

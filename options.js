@@ -8,8 +8,39 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'key', prompt: 'List the key takeaways from this content.' }
   ];
 
+  // Provider config — each keeps its own API key and model in storage.
+  // (Endpoints/headers live in chat.js; this is the settings-UI half.)
+  const PROVIDERS = {
+    anthropic: {
+      keyStorageKey: 'apiKey',
+      modelStorageKey: 'model',
+      keyPlaceholder: 'sk-ant-...',
+      keyHintHtml: 'Get your API key from <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>',
+      defaultModel: 'claude-sonnet-4-20250514',
+      models: [
+        { value: 'claude-sonnet-4-20250514', label: 'Sonnet 4 (recommended)' },
+        { value: 'claude-opus-4-20250514', label: 'Opus 4 (smartest)' },
+        { value: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5 (fastest)' },
+        { value: 'claude-3-5-haiku-20241022', label: 'Haiku 3.5 (budget)' }
+      ]
+    },
+    deepseek: {
+      keyStorageKey: 'deepseekApiKey',
+      modelStorageKey: 'deepseekModel',
+      keyPlaceholder: 'sk-...',
+      keyHintHtml: 'Get your API key from <a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a>',
+      defaultModel: 'deepseek-v4-flash',
+      models: [
+        { value: 'deepseek-v4-flash', label: 'V4 Flash (fast & cheap)' },
+        { value: 'deepseek-v4-pro', label: 'V4 Pro (smartest)' }
+      ]
+    }
+  };
+
   // ─── DOM refs ───────────────────────────────────────────────────────
+  const providerSelect = document.getElementById('provider');
   const apiKeyInput = document.getElementById('apiKey');
+  const apiKeyHint = document.getElementById('apiKeyHint');
   const toggleApiKeyBtn = document.getElementById('toggleApiKey');
   const modelSelect = document.getElementById('model');
   const maxContextInput = document.getElementById('maxContext');
@@ -45,14 +76,39 @@ document.addEventListener('DOMContentLoaded', () => {
   let commands = [];
   let editingIndex = -1; // -1 = creating new, >= 0 = editing
 
+  // Per-provider key/model cache so switching providers restores the right values
+  let currentProvider = 'anthropic';
+  const savedKeys = {};
+  const savedModels = {};
+
+  // Swap the key field, hint, and model dropdown to match the active provider
+  function applyProvider(providerId) {
+    currentProvider = PROVIDERS[providerId] ? providerId : 'anthropic';
+    const cfg = PROVIDERS[currentProvider];
+
+    modelSelect.innerHTML = cfg.models
+      .map(m => `<option value="${m.value}">${escapeHtml(m.label)}</option>`)
+      .join('');
+    modelSelect.value = savedModels[currentProvider] || cfg.defaultModel;
+
+    apiKeyInput.value = savedKeys[currentProvider] || '';
+    apiKeyInput.placeholder = cfg.keyPlaceholder;
+    apiKeyHint.innerHTML = cfg.keyHintHtml;
+  }
+
   // ─── Load saved settings ────────────────────────────────────────────
   chrome.storage.local.get(
-    ['apiKey', 'model', 'maxContext', 'fontFamily', 'commands', 'theme', 'customSystemPrompt',
+    ['provider', 'apiKey', 'model', 'deepseekApiKey', 'deepseekModel',
+     'maxContext', 'fontFamily', 'commands', 'theme', 'customSystemPrompt',
      'ttsEngine', 'localTtsVoice', 'elevenLabsApiKey', 'elevenLabsVoice', 'useDefaultVoice',
      'showFloatingButton'],
     (result) => {
-      if (result.apiKey) apiKeyInput.value = result.apiKey;
-      if (result.model) modelSelect.value = result.model;
+      savedKeys.anthropic = result.apiKey || '';
+      savedKeys.deepseek = result.deepseekApiKey || '';
+      savedModels.anthropic = result.model || '';
+      savedModels.deepseek = result.deepseekModel || '';
+      providerSelect.value = PROVIDERS[result.provider] ? result.provider : 'anthropic';
+      applyProvider(providerSelect.value);
       if (result.maxContext) maxContextInput.value = result.maxContext;
       if (result.customSystemPrompt) customSystemPromptInput.value = result.customSystemPrompt;
       if (result.theme) {
@@ -91,8 +147,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  apiKeyInput.addEventListener('change', () => save('apiKey', apiKeyInput.value.trim()));
-  modelSelect.addEventListener('change', () => save('model', modelSelect.value));
+  providerSelect.addEventListener('change', () => {
+    save('provider', providerSelect.value);
+    applyProvider(providerSelect.value);
+  });
+
+  apiKeyInput.addEventListener('change', () => {
+    const value = apiKeyInput.value.trim();
+    savedKeys[currentProvider] = value;
+    save(PROVIDERS[currentProvider].keyStorageKey, value);
+  });
+
+  modelSelect.addEventListener('change', () => {
+    savedModels[currentProvider] = modelSelect.value;
+    save(PROVIDERS[currentProvider].modelStorageKey, modelSelect.value);
+  });
   maxContextInput.addEventListener('change', () => save('maxContext', parseInt(maxContextInput.value) || 10000));
   customSystemPromptInput.addEventListener('change', () => save('customSystemPrompt', customSystemPromptInput.value.trim()));
 
@@ -369,14 +438,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ─── Export / Import ────────────────────────────────────────────────
   exportBtn.addEventListener('click', () => {
-    chrome.storage.local.get(['fontFamily', 'maxContext', 'model', 'commands', 'theme', 'customSystemPrompt', 'showFloatingButton'], (result) => {
+    chrome.storage.local.get(['provider', 'fontFamily', 'maxContext', 'model', 'deepseekModel', 'commands', 'theme', 'customSystemPrompt', 'showFloatingButton'], (result) => {
       const data = {
         version: 1,
         exportedAt: new Date().toISOString(),
         settings: {
+          provider: result.provider || 'anthropic',
           fontFamily: result.fontFamily || 'system-ui',
           maxContext: result.maxContext || 10000,
           model: result.model || 'claude-sonnet-4-20250514',
+          deepseekModel: result.deepseekModel || 'deepseek-v4-flash',
           theme: result.theme || 'auto',
           customSystemPrompt: result.customSystemPrompt || '',
           showFloatingButton: !!result.showFloatingButton
@@ -413,9 +484,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Apply settings
         const updates = {};
+        if (data.settings.provider) updates.provider = data.settings.provider;
         if (data.settings.fontFamily) updates.fontFamily = data.settings.fontFamily;
         if (data.settings.maxContext) updates.maxContext = data.settings.maxContext;
         if (data.settings.model) updates.model = data.settings.model;
+        if (data.settings.deepseekModel) updates.deepseekModel = data.settings.deepseekModel;
         if (data.settings.theme) updates.theme = data.settings.theme;
         if (data.settings.customSystemPrompt !== undefined) updates.customSystemPrompt = data.settings.customSystemPrompt;
         if (data.settings.showFloatingButton !== undefined) updates.showFloatingButton = data.settings.showFloatingButton;
@@ -444,7 +517,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (radio) radio.checked = true;
           }
           if (updates.maxContext) maxContextInput.value = updates.maxContext;
-          if (updates.model) modelSelect.value = updates.model;
+          // Provider-aware refresh: update caches, then re-apply the active provider
+          if (updates.model !== undefined) savedModels.anthropic = updates.model;
+          if (updates.deepseekModel !== undefined) savedModels.deepseek = updates.deepseekModel;
+          if (updates.provider && PROVIDERS[updates.provider]) providerSelect.value = updates.provider;
+          applyProvider(providerSelect.value);
           if (updates.customSystemPrompt !== undefined) customSystemPromptInput.value = updates.customSystemPrompt;
           if (updates.showFloatingButton !== undefined) showFloatingButtonCheckbox.checked = updates.showFloatingButton;
           renderCommands();
