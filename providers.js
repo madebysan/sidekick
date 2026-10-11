@@ -138,9 +138,9 @@
     return Object.entries(PROVIDERS).filter(([providerId]) => !isProviderHidden(providerId)).map(([providerId, provider]) => {
       const liveModels = normalizeModelOptions(catalog?.providers?.[providerId]?.models);
       const fallbackModels = normalizeModelOptions(provider.models);
-      const models = liveModels.length > 0
-        ? mergeModelOptions(fallbackModels, liveModels)
-        : fallbackModels;
+      // The hard-coded list is only a fallback for when the provider's live list
+      // can't load; merging it in kept stale models pinned above newer ones.
+      const models = liveModels.length > 0 ? liveModels : fallbackModels;
       const defaultModel = models.some(model => model.value === provider.defaultModel)
         ? provider.defaultModel
         : (models[0]?.value || provider.defaultModel);
@@ -155,19 +155,6 @@
         error: catalog?.providers?.[providerId]?.error || ''
       };
     });
-  }
-
-  function mergeModelOptions(primaryModels, secondaryModels) {
-    const seen = new Set();
-    const merged = [];
-
-    for (const model of [...primaryModels, ...secondaryModels]) {
-      if (!model?.value || seen.has(model.value)) continue;
-      seen.add(model.value);
-      merged.push(model);
-    }
-
-    return merged;
   }
 
   function getModelStorageKeys() {
