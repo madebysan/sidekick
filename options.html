@@ -7,29 +7,44 @@
   <link rel="stylesheet" href="options.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="settings-container">
+  <div class="settings-shell">
+    <nav class="settings-rail" aria-label="Settings">
+      <a href="#settings-provider">Provider</a>
+      <a href="#settings-voice">Voice</a>
+      <a href="#settings-look">Look</a>
+      <a href="#settings-commands">Commands</a>
+      <a href="#settings-data">Data</a>
+    </nav>
+
+    <div class="settings-container">
     <header class="settings-header">
-      <h1>Sidekick</h1>
-      <p class="subtitle">Settings</p>
+      <h1>Settings</h1>
+      <p class="subtitle">Jump the rail, then edit in place. Changes save as you go.</p>
     </header>
 
-    <!-- API Configuration -->
-    <section class="settings-section">
-      <h2>API Configuration</h2>
+    <!-- Provider -->
+    <section class="settings-section" id="settings-provider">
+      <h2>Provider</h2>
+      <p class="section-desc">Choose where Sidekick sends chat requests and how much page context it can include.</p>
 
       <div class="form-group">
         <label for="provider">Provider</label>
         <select id="provider">
           <option value="anthropic">Anthropic (Claude)</option>
+          <option value="openai">OpenAI</option>
+          <option value="fal">Fal.ai (OpenRouter)</option>
+          <option value="gemini">Google Gemini</option>
           <option value="deepseek">DeepSeek</option>
+          <option value="codex">Codex (local)</option>
+          <option value="local">Local (LM Studio)</option>
         </select>
-        <p class="form-hint">Each provider keeps its own API key and model. Switch any time.</p>
+        <p class="form-hint">Each provider keeps its own model settings. Cloud providers keep their own API key.</p>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="apiKeyGroup">
         <label for="apiKey">API Key</label>
         <div class="input-with-toggle">
           <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
@@ -41,9 +56,19 @@
         <p class="form-hint" id="apiKeyHint">Get your API key from <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a></p>
       </div>
 
+      <div class="form-group" id="localEndpointGroup" style="display:none">
+        <label for="localEndpoint" id="localEndpointLabel">Local Endpoint</label>
+        <input type="text" id="localEndpoint" value="http://localhost:1234/v1/chat/completions" autocomplete="off">
+        <p class="form-hint" id="localEndpointHint">Paste LM Studio's base URL or full chat URL. Sidekick will use /v1/chat/completions. Only localhost or 127.0.0.1 endpoints are supported.</p>
+      </div>
+
       <div class="form-group">
         <label for="model">Model</label>
-        <select id="model"></select>
+        <div class="model-row">
+          <select id="model"></select>
+          <button type="button" id="refreshModels" class="btn btn-secondary btn-sm">Refresh</button>
+        </div>
+        <p class="form-hint" id="modelHint">Model list refreshes from the selected provider when an API key is available.</p>
       </div>
 
       <div class="form-group">
@@ -53,15 +78,33 @@
       </div>
 
       <div class="form-group">
+        <label for="userMemory">Memory</label>
+        <textarea id="userMemory" placeholder="Preferences Sidekick should remember, one per line. Example: Do not use the word XYZ." rows="4"></textarea>
+        <p class="form-hint">Added to every conversation and included in settings exports. You can also type "remember ..." in chat.</p>
+      </div>
+
+      <div class="form-group">
         <label for="maxContext">Max Context Length</label>
-        <input type="number" id="maxContext" min="1000" max="100000" step="1000" value="10000">
-        <p class="form-hint">Maximum characters of page content to send as context (default: 10,000)</p>
+        <input type="number" id="maxContext" min="1000" max="100000" step="1000" value="60000">
+        <p class="form-hint">Maximum characters of page content to send as context (default: 60,000)</p>
+      </div>
+
+      <div class="form-group toggle-row">
+        <div class="toggle-row-text">
+          <label for="webSearchEnabled">Web search</label>
+          <p class="form-hint" id="webSearchHint">On by default with a Fal key. Default search model is Gemini 3.8 Flash. Gemini 3.5 Flash and Claude Haiku 4.5 are cheaper backups. Sonnet and GPT-5 also search. /tldr and /contrarian stay on the tab; /research uses search.</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="webSearchEnabled">
+          <span class="toggle-slider"></span>
+        </label>
       </div>
     </section>
 
-    <!-- Text-to-Speech -->
-    <section class="settings-section">
-      <h2>Text-to-Speech</h2>
+    <!-- Voice -->
+    <section class="settings-section" id="settings-voice">
+      <h2>Voice</h2>
+      <p class="section-desc">Configure the voice used by Speak and the header Listen action.</p>
 
       <div class="form-group toggle-row">
         <div class="toggle-row-text">
@@ -78,8 +121,12 @@
         <label for="ttsEngine">Default Engine</label>
         <select id="ttsEngine">
           <option value="local">Browser (free)</option>
-          <option value="elevenlabs">ElevenLabs (premium)</option>
+          <option value="kokoro">Kokoro (local)</option>
+          <option value="voicebox-lab">Voicebox (local)</option>
+          <option value="chatterbox">Chatterbox (local fallback)</option>
+          <option value="elevenlabs" selected>ElevenLabs</option>
         </select>
+        <p class="form-hint">Listen and Speak default to ElevenLabs. Local engines stay available if you switch back.</p>
       </div>
 
       <!-- Browser voice settings -->
@@ -93,6 +140,58 @@
             <button type="button" id="testLocalVoice" class="btn btn-secondary btn-sm">Test</button>
           </div>
           <p class="form-hint">Voices provided by your browser/OS. Quality varies.</p>
+        </div>
+      </div>
+
+      <!-- Kokoro local settings -->
+      <div id="kokoroTtsSettings">
+        <div class="form-group">
+          <label for="kokoroEndpoint">Kokoro Endpoint</label>
+          <input type="text" id="kokoroEndpoint" placeholder="http://localhost:8789" autocomplete="off">
+          <p class="form-hint">Uses the same local Kokoro server protocol as Narrate: /config for voices and /download for MP3.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="kokoroVoice">Kokoro Voice</label>
+          <div class="voice-row">
+            <select id="kokoroVoice">
+              <option value="af_heart">Heart</option>
+            </select>
+            <button type="button" id="refreshKokoroVoices" class="btn btn-secondary btn-sm" title="Refresh voices">Refresh</button>
+            <button type="button" id="testKokoroVoice" class="btn btn-secondary btn-sm">Test</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chatterbox local settings -->
+      <div id="chatterboxTtsSettings">
+        <div class="form-group">
+          <label for="indexTtsEndpoint">Local TTS Bridge Endpoint</label>
+          <input type="text" id="indexTtsEndpoint" placeholder="http://localhost:8790" autocomplete="off">
+          <p class="form-hint">Sidekick's local TTS bridge (scripts/indextts-server.mjs): /config for voices, /download and /jobs for audio. Voicebox requires SIDEKICK_VOICEBOX_ROOT or the configured default path.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="chatterboxVoice">Bridge Voice</label>
+          <div class="voice-row">
+            <select id="chatterboxVoice">
+              <option value="default">Chatterbox</option>
+            </select>
+            <button type="button" id="refreshChatterboxVoices" class="btn btn-secondary btn-sm" title="Refresh voices">Refresh</button>
+            <button type="button" id="testChatterboxVoice" class="btn btn-secondary btn-sm">Test</button>
+          </div>
+          <p class="form-hint">Voices come from your local voice bridge catalog. Voices labeled experimental have not passed the article benchmark yet.</p>
+        </div>
+
+        <div class="form-group toggle-row">
+          <div class="toggle-row-text">
+            <label for="allowExperimentalIndexTtsArticleVoice">Allow Experimental Voices For Full Pages</label>
+            <p class="form-hint">Leave this off for article reads. Turn it on only when deliberately testing an experimental voice.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="allowExperimentalIndexTtsArticleVoice">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
       </div>
 
@@ -120,18 +219,59 @@
             <button type="button" id="testElevenLabsVoice" class="btn btn-secondary btn-sm">Test</button>
           </div>
         </div>
+
+        <div class="form-group">
+          <label for="elevenLabsModel">ElevenLabs Model</label>
+          <select id="elevenLabsModel">
+            <option value="eleven_flash_v2_5" selected>Flash v2.5 (fastest start, half the credits)</option>
+            <option value="eleven_multilingual_v2">Multilingual v2 (most natural, slower, more credits)</option>
+          </select>
+          <p class="form-hint">Audio starts playing while the rest is still generating.</p>
+        </div>
       </div>
 
       <div class="form-group">
         <label>Save Location</label>
         <p class="save-path-display">Downloads/Temp/sidekick-logs/</p>
-        <p class="form-hint">Conversations and ElevenLabs audio are auto-saved here when a tab closes.</p>
+        <p class="form-hint">Conversations and generated audio are auto-saved here when a tab closes.</p>
+      </div>
+
+      <div class="form-group toggle-row">
+        <div class="toggle-row-text">
+          <label for="autoDownloadGeneratedAudio">Auto-Download Generated Audio</label>
+          <p class="form-hint">Save each generated MP3 once it is fully generated. ElevenLabs keeps playing while it saves.</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoDownloadGeneratedAudio">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="form-group" id="generatedAudioFolderGroup">
+        <label for="generatedAudioFolder">Save Generated Audio To</label>
+        <div class="input-with-prefix">
+          <span class="input-prefix">Downloads/</span>
+          <input type="text" id="generatedAudioFolder" placeholder="Sidekick Audio" autocomplete="off" spellcheck="false">
+        </div>
+        <p class="form-hint">A folder inside Downloads (Chrome can't save elsewhere). Leave empty for Downloads itself. Also used by the MP3 button.</p>
+      </div>
+
+      <div class="form-group toggle-row">
+        <div class="toggle-row-text">
+          <label for="autoSaveConversations">Auto-Save Conversations</label>
+          <p class="form-hint">Download the chat history and generated audio automatically when the tab closes.</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoSaveConversations">
+          <span class="toggle-slider"></span>
+        </label>
       </div>
     </section>
 
-    <!-- Appearance -->
-    <section class="settings-section">
-      <h2>Appearance</h2>
+    <!-- Look -->
+    <section class="settings-section" id="settings-look">
+      <h2>Look</h2>
+      <p class="section-desc">Tune the floating chat UI without changing provider behavior.</p>
 
       <div class="form-group toggle-row">
         <div class="toggle-row-text">
@@ -149,8 +289,10 @@
         <div class="theme-options">
           <label class="theme-option">
             <input type="radio" name="theme" value="auto" checked>
-            <span class="theme-label">Auto</span>
-            <span class="theme-desc">Match system</span>
+            <span class="theme-copy">
+              <span class="theme-label">Auto</span>
+              <span class="theme-desc">Match system</span>
+            </span>
           </label>
           <label class="theme-option">
             <input type="radio" name="theme" value="light">
@@ -164,15 +306,32 @@
       </div>
 
       <div class="form-group">
+        <label>Chat style</label>
+        <p class="form-hint">Glass is an experimental overlay look. Classic restores the current chat window instantly.</p>
+        <div class="theme-options">
+          <label class="theme-option">
+            <input type="radio" name="chatAppearance" value="classic">
+            <span class="theme-copy">
+              <span class="theme-label">Classic</span>
+              <span class="theme-desc">Current look</span>
+            </span>
+          </label>
+          <label class="theme-option">
+            <input type="radio" name="chatAppearance" value="glass" checked>
+            <span class="theme-copy">
+              <span class="theme-label">Glass</span>
+              <span class="theme-desc">Frosted overlay</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label>Font</label>
         <div class="font-options">
           <label class="font-option">
             <input type="radio" name="fontFamily" value="system-ui" checked>
             <span class="font-preview" style="font-family: system-ui">System Default</span>
-          </label>
-          <label class="font-option">
-            <input type="radio" name="fontFamily" value="'Inter', sans-serif">
-            <span class="font-preview" style="font-family: 'Inter', sans-serif">Inter</span>
           </label>
           <label class="font-option">
             <input type="radio" name="fontFamily" value="'DM Sans', sans-serif">
@@ -190,10 +349,26 @@
       </div>
     </section>
 
-    <!-- Custom Commands -->
-    <section class="settings-section">
-      <h2>Custom Commands</h2>
-      <p class="section-desc">Create slash commands that expand into prompts. Type <code>/name</code> in the chat to use them.</p>
+    <!-- Commands -->
+    <section class="settings-section" id="settings-commands">
+      <h2>Commands</h2>
+      <div class="form-group toggle-row">
+        <div class="toggle-row-text">
+          <label for="autoSubmitCommandOnStart">Auto-submit command on start</label>
+          <p class="form-hint" id="autoSubmitCommandHint">Send the selected command with page context when you open an empty chat. Uses your selected AI provider.</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoSubmitCommandOnStart" role="switch" aria-describedby="autoSubmitCommandHint">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="startupCommand">Default command</label>
+        <select id="startupCommand" aria-describedby="startupCommandHint"></select>
+        <p class="form-hint" id="startupCommandHint">Choose any command below, including custom commands. Existing conversations and drafts are left alone.</p>
+      </div>
+
+      <p class="section-desc">Create slash commands that expand into prompts. Type <code>/name</code> in the chat to use them. The switch pins a command on the empty chat; turned-off commands still work with <code>/</code>.</p>
 
       <div id="commandsList" class="commands-list"></div>
 
@@ -210,21 +385,25 @@
     </section>
 
     <!-- Data -->
-    <section class="settings-section">
+    <section class="settings-section" id="settings-data">
       <h2>Data</h2>
 
       <div class="data-actions">
         <button type="button" id="exportSettings" class="btn btn-secondary">Export Settings</button>
         <button type="button" id="importSettings" class="btn btn-secondary">Import Settings</button>
-        <input type="file" id="importFile" accept=".json" style="display:none">
+        <input type="file" id="importFile" accept=".json" hidden>
       </div>
-      <p class="form-hint">Export/import your settings and commands. API key is excluded from exports for security.</p>
+      <p class="form-hint">Export/import your settings, commands, and memory. API keys are excluded from exports for security.</p>
     </section>
 
     <!-- Save status -->
-    <div class="save-status" id="saveStatus"></div>
+    <div class="save-status" id="saveStatus" aria-live="polite"></div>
+    </div>
   </div>
 
+  <script src="prompts.js"></script>
+  <script src="edition.js"></script>
+  <script src="providers.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

@@ -53,6 +53,84 @@
   }
 
   /**
+   * Parse YouTube json3 timedtext responses into readable chunks.
+   */
+  function parseJson3Transcript(data) {
+    if (!data || !Array.isArray(data.events)) {
+      throw new Error('Invalid timedtext response');
+    }
+
+    const segments = [];
+    for (const event of data.events) {
+      if (!event.segs) continue;
+      const text = event.segs.map(s => s.utf8 || '').join('').trim();
+      if (text) {
+        segments.push({
+          text,
+          start: (event.tStartMs || 0) / 1000,
+          duration: (event.dDurationMs || 0) / 1000
+        });
+      }
+    }
+
+    if (segments.length === 0) {
+      throw new Error('Parsed zero segments from timedtext response');
+    }
+
+    return chunkSegments(segments);
+  }
+
+  /**
+   * Parse YouTube's initial player response from page scripts.
+   */
+  function getYtInitialPlayerResponse() {
+    for (const script of document.querySelectorAll('script')) {
+      const text = script.textContent || '';
+      if (!text.includes('ytInitialPlayerResponse')) continue;
+
+      const match = text.match(/ytInitialPlayerResponse\s*=\s*({.+?});/s);
+      if (!match) continue;
+
+      try {
+        return JSON.parse(match[1]);
+      } catch {
+        // Keep looking. YouTube can emit multiple script blocks.
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * CAPTION TRACK METHOD: Read captionTracks from ytInitialPlayerResponse.
+   * This is less brittle than the transcript panel endpoint and does not
+   * require clicking the CC button.
+   */
+  async function extractViaCaptionTracks() {
+    const playerResponse = getYtInitialPlayerResponse();
+    const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+
+    if (!captionTracks.length) {
+      throw new Error('No caption tracks found in player response');
+    }
+
+    const preferredTrack = captionTracks.find(track => track.languageCode === 'en' && track.kind !== 'asr')
+      || captionTracks.find(track => track.languageCode === 'en')
+      || captionTracks.find(track => String(track.languageCode || '').startsWith('en'))
+      || captionTracks[0];
+
+    const url = new URL(preferredTrack.baseUrl);
+    url.searchParams.set('fmt', 'json3');
+
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      throw new Error(`Timedtext returned ${response.status}`);
+    }
+
+    return parseJson3Transcript(await response.json());
+  }
+
+  /**
    * PRIMARY METHOD: Extract transcript using YouTube's internal API
    * Parses ytInitialData from page scripts to find transcript endpoint params,
    * then calls YouTube's get_transcript API directly.
@@ -77,18 +155,7 @@
     }
 
     // Also check for ytInitialPlayerResponse which may have engagement panels
-    let ytPlayerResponse = null;
-    for (const script of scripts) {
-      const text = script.textContent;
-      if (text.includes('ytInitialPlayerResponse')) {
-        const match = text.match(/ytInitialPlayerResponse\s*=\s*({.+?});/s);
-        if (match) {
-          try {
-            ytPlayerResponse = JSON.parse(match[1]);
-          } catch (e) {}
-        }
-      }
-    }
+    const ytPlayerResponse = getYtInitialPlayerResponse();
 
     // Search for getTranscriptEndpoint params in ytInitialData
     let transcriptParams = null;
@@ -218,32 +285,13 @@
               const response = await fetch(url);
               const data = await response.json();
 
-              if (!data || !data.events) {
-                reject(new Error('Invalid timedtext response'));
-                return;
-              }
-
-              // Parse events into segments
-              const segments = [];
-              for (const event of data.events) {
-                if (!event.segs) continue;
-                const text = event.segs.map(s => s.utf8 || '').join('').trim();
-                if (text) {
-                  segments.push({
-                    text: text,
-                    start: (event.tStartMs || 0) / 1000,
-                    duration: (event.dDurationMs || 0) / 1000
-                  });
-                }
-              }
-
               // Turn CC back off
               const ccButton = document.querySelector('.ytp-subtitles-button');
               if (ccButton && ccButton.getAttribute('aria-pressed') === 'true') {
                 ccButton.click();
               }
 
-              resolve(chunkSegments(segments));
+              resolve(parseJson3Transcript(data));
             } catch (e) {
               reject(e);
             }
@@ -306,36 +354,50 @@
     const meta = getVideoMeta();
 
     try {
-      const chunks = await extractViaPrimaryMethod();
+      const chunks = await extractViaCaptionTracks();
       const formatted = chunks.map(c => `[${c.timestamp}] ${c.text}`).join('\n');
       return {
         success: true,
         transcript: formatted,
         title: meta.title,
         videoId: meta.videoId,
-        method: 'primary'
+        method: 'captionTracks'
       };
-    } catch (primaryError) {
-      console.log('Sidekick: Primary transcript method failed, trying fallback...', primaryError.message);
+    } catch (captionTrackError) {
+      console.log('Sidekick: Caption track transcript method failed, trying transcript endpoint...', captionTrackError.message);
 
       try {
-        const chunks = await extractViaFallbackMethod();
+        const chunks = await extractViaPrimaryMethod();
         const formatted = chunks.map(c => `[${c.timestamp}] ${c.text}`).join('\n');
         return {
           success: true,
           transcript: formatted,
           title: meta.title,
           videoId: meta.videoId,
-          method: 'fallback'
+          method: 'primary'
         };
-      } catch (fallbackError) {
-        console.log('Sidekick: Fallback transcript method also failed', fallbackError.message);
-        return {
-          success: false,
-          error: `Could not extract transcript: ${primaryError.message} / ${fallbackError.message}`,
-          title: meta.title,
-          videoId: meta.videoId
-        };
+      } catch (primaryError) {
+        console.log('Sidekick: Primary transcript method failed, trying CC fallback...', primaryError.message);
+
+        try {
+          const chunks = await extractViaFallbackMethod();
+          const formatted = chunks.map(c => `[${c.timestamp}] ${c.text}`).join('\n');
+          return {
+            success: true,
+            transcript: formatted,
+            title: meta.title,
+            videoId: meta.videoId,
+            method: 'fallback'
+          };
+        } catch (fallbackError) {
+          console.log('Sidekick: Fallback transcript method also failed', fallbackError.message);
+          return {
+            success: false,
+            error: `Could not extract transcript: ${captionTrackError.message} / ${primaryError.message} / ${fallbackError.message}`,
+            title: meta.title,
+            videoId: meta.videoId
+          };
+        }
       }
     }
   }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sidekick",
-  "version": "1.2",
+  "version": "1.6",
   "description": "Chat with AI about any webpage. Grabs page content or YouTube transcripts as context.",
   "icons": {
     "16": "icons/icon16.png",
@@ -10,6 +10,7 @@
     "128": "icons/icon128.png"
   },
   "permissions": ["storage", "activeTab", "scripting", "downloads"],
+  "host_permissions": ["https://api.anthropic.com/*", "https://api.openai.com/*", "https://api.deepseek.com/*", "https://generativelanguage.googleapis.com/*", "https://fal.run/*", "https://openrouter.ai/*", "http://localhost/*", "http://127.0.0.1/*"],
   "action": {
     "default_icon": {
       "16": "icons/icon16.png",
@@ -24,7 +25,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["youtube.js", "chat.js", "tts.js", "content.js"],
+      "js": ["youtube.js", "prompts.js", "edition.js", "providers.js", "chat.js", "tts.js", "vendor/Readability.js", "content.js"],
       "run_at": "document_idle"
     }
   ],
@@ -36,6 +37,6 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com https://api.deepseek.com https://api.elevenlabs.io"
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com https://api.openai.com https://api.deepseek.com https://generativelanguage.googleapis.com https://api.elevenlabs.io https://fal.run https://openrouter.ai http://localhost:* http://127.0.0.1:*"
   }
 }

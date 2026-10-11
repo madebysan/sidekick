@@ -38,52 +38,68 @@
 <body>
   <div class="container">
     <h1>Sidekick Privacy Policy</h1>
-    <p class="subtitle">Last updated: May 24, 2026</p>
+    <p class="subtitle">Last updated: October 11, 2026</p>
 
     <div class="section">
       <h2>Overview</h2>
-      <p>Sidekick is a Chrome extension that lets you chat with AI about any webpage. It is designed to keep your data local. There is no server, no account, no analytics, and no tracking. This policy explains exactly what data is handled and where it goes.</p>
+      <p>Sidekick is a Chromium extension for Brave, Chrome, and similar browsers that lets you chat with AI about any webpage. It is designed to keep your data local. There is no server, no account, no analytics, and no tracking. This policy explains exactly what data is handled and where it goes.</p>
+      <p><strong>Auto-submit command on start</strong> is optional and off by default. If enabled, opening an empty chat sends your selected command and active page or transcript context to your selected AI provider, just like submitting that command manually. You can change the command or turn this off in Settings → Commands.</p>
     </div>
 
     <div class="section">
       <h2>Data stored on your device</h2>
       <p>The following data is stored locally in your browser using <code>chrome.storage.local</code> and is never transmitted to any server:</p>
       <ul>
-        <li><strong>Settings and preferences</strong> — theme, font, model selection, max context length, custom system prompt</li>
-        <li><strong>API keys</strong> — your Anthropic and/or DeepSeek API key, plus an optional ElevenLabs API key, are stored locally and only sent to their respective APIs when making requests</li>
+        <li><strong>Settings and preferences</strong> — theme, chat style, font, model selection, max context length, web search, custom system prompt, explicit memory preferences</li>
+        <li><strong>API keys and local endpoints</strong> — your Anthropic, OpenAI, Fal.ai, Gemini, and/or DeepSeek API key, optional ElevenLabs API key, optional local LM Studio endpoint, and optional Kokoro endpoint are stored locally and only used when making requests</li>
         <li><strong>Custom slash commands</strong> — command names and prompt text you create</li>
         <li><strong>UI state</strong> — chat window size</li>
-        <li><strong>Conversation data</strong> — temporarily stored while a tab is open, used for auto-saving when the tab closes</li>
+        <li><strong>Conversation data</strong> — temporarily stored while a tab is open, used for optional auto-saving when the tab closes</li>
       </ul>
-      <p>Saved conversation logs and audio files are written to your local Downloads folder (<code>Downloads/Temp/sidekick-logs/</code>) and are not transmitted anywhere.</p>
+      <p>When Auto-Save Conversations is enabled, saved conversation logs and audio files are written to your local Downloads folder (<code>Downloads/Temp/sidekick-logs/</code>) and are not transmitted anywhere.</p>
     </div>
 
     <div class="section">
-      <h2>Data sent to your AI provider (Anthropic or DeepSeek)</h2>
-      <p>You choose the provider in Settings. When you send a message in the chat, the following is transmitted directly from your browser to that provider's API (<code>api.anthropic.com</code> for Claude, <code>api.deepseek.com</code> for DeepSeek):</p>
+      <h2>Data sent to your cloud AI provider (Anthropic, OpenAI, Fal.ai, Gemini, or DeepSeek)</h2>
+      <p>You choose the provider in Settings. When you send a message with Anthropic, OpenAI, Fal.ai, Gemini, or DeepSeek selected, the following is transmitted directly from your browser to that provider's API (<code>api.anthropic.com</code> for Claude, <code>api.openai.com</code> for OpenAI, <code>fal.run</code> for Fal.ai, <code>generativelanguage.googleapis.com</code> for Gemini, <code>api.deepseek.com</code> for DeepSeek):</p>
       <ul>
         <li>Your message text and conversation history for the current tab</li>
+        <li>Memory preferences you explicitly saved</li>
         <li>Page content or YouTube transcript text, if context is active</li>
-        <li>Images you attach via drag-and-drop or screenshot, sent as base64-encoded data. DeepSeek models are text-only, so images are sent only when a Claude model is selected.</li>
+        <li>Images you attach via drag-and-drop or screenshot, sent as base64-encoded data. Fal.ai image sends only go out when the selected OpenRouter model supports vision. DeepSeek is text-only in Sidekick, so those cloud image sends require Claude, a compatible OpenAI model, or a vision-capable Fal model.</li>
         <li>The API key for the selected provider (for authentication)</li>
         <li>The selected model name</li>
+        <li>If Web search is on, live search queries through Fal.ai/OpenRouter. Page-grounded commands such as <code>/tldr</code> and <code>/contrarian</code> do not search. <code>/research</code> does search when the toggle is on.</li>
       </ul>
-      <p>API calls go directly from your browser to the provider. No proxy server or intermediary is involved. The provider's own privacy policy governs how they handle API requests: <a href="https://www.anthropic.com/privacy" target="_blank">Anthropic</a> and <a href="https://www.deepseek.com/privacy" target="_blank">DeepSeek</a>.</p>
+      <p>Sidekick also calls configured cloud providers' model-list endpoints to refresh available model names. Fal.ai model choices are refreshed from OpenRouter's public model catalog at <code>openrouter.ai</code> because fal's <code>openrouter/router</code> endpoint accepts OpenRouter model IDs. Local model choices are refreshed from your configured LM Studio endpoint at <code>/v1/models</code>. Provider model lists are cached in <code>chrome.storage.local</code>. API calls go directly from your browser to the provider. No proxy server or intermediary is involved. The provider's own privacy policy governs how they handle API requests: <a href="https://www.anthropic.com/privacy" target="_blank">Anthropic</a>, <a href="https://openai.com/policies/privacy-policy/" target="_blank">OpenAI</a>, <a href="https://fal.ai/privacy" target="_blank">Fal.ai</a>, <a href="https://policies.google.com/privacy" target="_blank">Google</a>, and <a href="https://www.deepseek.com/privacy" target="_blank">DeepSeek</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data sent to your local model server</h2>
+      <p>This only applies if you select Local (LM Studio) in Settings. When you send a message, Sidekick sends your message text, conversation history, active page context, memory preferences, selected model name, and custom system prompt to the configured localhost endpoint. The default endpoint is <code>http://localhost:1234/v1/chat/completions</code>.</p>
+      <p>Local mode does not use an API key. Sidekick restricts local model endpoints to <code>localhost</code> or <code>127.0.0.1</code>. These requests stay on your computer unless your local model server is configured to forward data elsewhere. Screenshot and drag-and-drop images are sent to the local endpoint only when the selected local model is Gemma 4.</p>
     </div>
 
     <div class="section">
       <h2>Data sent to ElevenLabs (api.elevenlabs.io)</h2>
-      <p>This only applies if you enable ElevenLabs text-to-speech in Settings. When you click "Speak" on an assistant message:</p>
+      <p>This only applies if you enable ElevenLabs text-to-speech in Settings. When you click "Speak" on an assistant message or "Listen" for the current page:</p>
       <ul>
-        <li>The plain text of that message is sent to the ElevenLabs API</li>
+        <li>The plain text of that message, page article, or YouTube transcript is sent to the ElevenLabs API</li>
         <li>Your ElevenLabs API key is sent for authentication</li>
       </ul>
-      <p>If you do not configure an ElevenLabs API key or use the free browser voice engine, no data is sent to ElevenLabs. ElevenLabs' own <a href="https://elevenlabs.io/privacy" target="_blank">privacy policy</a> governs how they handle API requests.</p>
+      <p>If you do not configure an ElevenLabs API key or use the browser or Kokoro voice engine, no data is sent to ElevenLabs. ElevenLabs' own <a href="https://elevenlabs.io/privacy" target="_blank">privacy policy</a> governs how they handle API requests.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data sent to your local speech server</h2>
+      <p>This only applies if you select Kokoro text-to-speech in Settings. When you click "Speak" on an assistant message or "Listen" for the current page, Sidekick sends the plain text of that message, page article, or YouTube transcript and selected voice to your configured local speech server.</p>
+      <p>Kokoro defaults to <code>http://localhost:8789</code> and uses a <code>/config</code> and <code>/download</code> protocol. Sidekick does not include a Kokoro server; you run your own.</p>
+      <p>Sidekick restricts local speech endpoints to <code>localhost</code> or <code>127.0.0.1</code>. These requests stay on your computer unless your local speech server is configured to forward data elsewhere.</p>
     </div>
 
     <div class="section">
       <h2>Data sent to Google (fonts.googleapis.com)</h2>
-      <p>If you select a non-system font in Settings (Inter, DM Sans, IBM Plex Sans, or Source Sans 3), a single font file request is made to Google Fonts. If you use the default "System" font, no request to Google is made.</p>
+      <p>The default font is your system font, which makes no request to Google. If you select DM Sans, IBM Plex Sans, or Source Sans 3 in Settings, the font is loaded from Google Fonts when the chat opens. The Settings page also loads these three fonts from Google Fonts to show previews.</p>
     </div>
 
     <div class="section">
@@ -94,7 +110,7 @@
         <li>No data is sent to any server operated by the extension developer</li>
         <li>No cookies are set or read</li>
         <li>No personal information is collected, sold, or shared with third parties</li>
-        <li>Settings exports explicitly exclude API keys</li>
+        <li>Settings exports include explicit memory preferences and explicitly exclude API keys</li>
       </ul>
     </div>
 
@@ -104,13 +120,13 @@
         <li><strong>storage</strong> — Saves your settings and preferences locally in the browser</li>
         <li><strong>activeTab</strong> — Reads the current page content when you click the extension icon, and captures screenshots when you click the camera button</li>
         <li><strong>scripting</strong> — Injects the chat interface into the active tab when you click the extension icon</li>
-        <li><strong>downloads</strong> — Saves conversation logs and audio files to your Downloads folder when a tab closes</li>
+        <li><strong>downloads</strong> — Saves conversation logs and audio files to your Downloads folder when Auto-Save Conversations is enabled</li>
       </ul>
     </div>
 
     <div class="section">
       <h2>Data retention</h2>
-      <p>Conversation data is held in memory while the tab is open and written to your local Downloads folder when the tab closes. It is then removed from browser storage. Settings persist until you uninstall the extension or clear extension data.</p>
+      <p>Conversation data is held in memory while the tab is open. If Auto-Save Conversations is enabled, it is written to your local Downloads folder when the tab closes. It is then removed from browser storage. Settings persist until you uninstall the extension or clear extension data.</p>
       <p>You can delete saved conversation files from your Downloads folder at any time. Uninstalling the extension removes all stored settings and API keys.</p>
     </div>
 
